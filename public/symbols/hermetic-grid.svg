@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+  <defs>
+    <pattern id="cell" width="80" height="80" patternUnits="userSpaceOnUse">
+      <rect width="80" height="80" fill="none"/>
+      <circle cx="40" cy="40" r="20" fill="none" stroke="#c8aa6a" stroke-opacity="0.22" stroke-width="1.2"/>
+      <path d="M0 40H80M40 0V80" stroke="#c8aa6a" stroke-opacity="0.14" stroke-width="1"/>
+      <path d="M8 8L72 72M72 8L8 72" stroke="#9ccdc0" stroke-opacity="0.12" stroke-width="1"/>
+      <circle cx="40" cy="40" r="2.8" fill="#c8aa6a" fill-opacity="0.32"/>
+    </pattern>
+  </defs>
+  <rect width="320" height="320" fill="url(#cell)"/>
+</svg>

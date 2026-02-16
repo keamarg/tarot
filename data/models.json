@@ -1,0 +1,37 @@
+[
+  {
+    "provider": "anthropic",
+    "id": "claude-3-7-sonnet-latest",
+    "label": "Claude 3.7 Sonnet (latest)"
+  },
+  {
+    "provider": "anthropic",
+    "id": "claude-3-5-haiku-latest",
+    "label": "Claude 3.5 Haiku (latest)"
+  },
+  {
+    "provider": "openai",
+    "id": "gpt-4.1-mini",
+    "label": "GPT-4.1 mini"
+  },
+  {
+    "provider": "openai",
+    "id": "gpt-4.1-nano",
+    "label": "GPT-4.1 nano"
+  },
+  {
+    "provider": "openai",
+    "id": "gpt-4o-mini",
+    "label": "GPT-4o mini"
+  },
+  {
+    "provider": "google",
+    "id": "gemini-2.5-flash",
+    "label": "Gemini 2.5 Flash"
+  },
+  {
+    "provider": "google",
+    "id": "gemini-2.5-flash-lite",
+    "label": "Gemini 2.5 Flash Lite"
+  }
+]

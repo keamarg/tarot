@@ -1,0 +1,14 @@
+node_modules
+dist
+.vite
+coverage
+*.log
+.DS_Store
+src/assets/cards/raw
+src/assets/cards/normalized
+*.local
+.wrangler
+worker/.dev.vars
+src/**/*.vue.js
+src/**/*.vue.d.ts
+*.tsbuildinfo

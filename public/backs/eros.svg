@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="1050" viewBox="0 0 700 1050" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2c1027"/>
+      <stop offset="0.45" stop-color="#5b1e39"/>
+      <stop offset="1" stop-color="#1f0a24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="48%" r="62%">
+      <stop offset="0" stop-color="#ffd2b4" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#0e0712" stop-opacity="0.58"/>
+    </radialGradient>
+    <pattern id="lace" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M60 14c20 0 36 16 36 36s-16 36-36 36-36-16-36-36 16-36 36-36z" stroke="#ffc8bf" stroke-opacity="0.2"/>
+      <path d="M0 60h120M60 0v120" stroke="#ffc8bf" stroke-opacity="0.13"/>
+      <circle cx="60" cy="60" r="6" fill="#ffd9c9" fill-opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="700" height="1050" rx="40" fill="url(#bg)"/>
+  <rect width="700" height="1050" rx="40" fill="url(#glow)"/>
+  <rect width="700" height="1050" rx="40" fill="url(#lace)"/>
+
+  <g transform="translate(350 525)">
+    <circle r="186" stroke="#ffd6bf" stroke-opacity="0.42" stroke-width="2"/>
+    <circle r="130" stroke="#ffd6bf" stroke-opacity="0.4" stroke-width="2"/>
+    <path d="M0-148c-38 0-68 30-68 68 0 62 68 106 68 106s68-44 68-106c0-38-30-68-68-68z" fill="#ffd5bc" fill-opacity="0.22" stroke="#ffe2cf" stroke-opacity="0.56" stroke-width="2"/>
+    <path d="M-46 -8c-28 0-52 23-52 51 0 44 52 77 52 77s52-33 52-77c0-28-24-51-52-51z" fill="#ffb7bf" fill-opacity="0.2" stroke="#ffd1cf" stroke-opacity="0.5" stroke-width="2"/>
+    <path d="M46 -8c-28 0-52 23-52 51 0 44 52 77 52 77s52-33 52-77c0-28-24-51-52-51z" fill="#ffb7bf" fill-opacity="0.2" stroke="#ffd1cf" stroke-opacity="0.5" stroke-width="2"/>
+  </g>
+
+  <rect x="28" y="28" width="644" height="994" rx="30" stroke="#ffd8c8" stroke-opacity="0.62" stroke-width="2"/>
+</svg>

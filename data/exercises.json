@@ -1,0 +1,587 @@
+[
+  {
+    "id": "exercise-1-face-value",
+    "title": "Exercise One - Face value",
+    "status": "active",
+    "scenarioTemplate": "Practice rapid first-impression interpretation from card imagery without overthinking.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw one card and describe only what is visibly happening.",
+      "Name the first practical meaning in one to two sentences.",
+      "Compare one alternative interpretation and choose the strongest fit.",
+      "Ask for a hint only if you feel stuck."
+    ],
+    "rules": {
+      "maxCardsInPlay": 1,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This opening drill trains immediate visual reading before textbook keywords. You describe what is plainly on the card, then translate that into a practical message without overloading the interpretation.",
+    "stepPlan": [
+      {
+        "text": "Draw one card and describe only what is visibly happening.",
+        "action": "draw",
+        "drawCount": 1
+      },
+      {
+        "text": "Name the first practical meaning in one to two sentences.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Compare one alternative interpretation and choose the strongest fit.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Ask for a hint only if you feel stuck.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-1a-looking-beyond-face-value",
+    "title": "Exercise 1A - Looking beyond face value",
+    "status": "active",
+    "scenarioTemplate": "Move beyond literal imagery into symbolic patterns and implied action.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw a card and list the literal visual facts first.",
+      "Infer symbolic subtext: motive, timing, or emotional tone.",
+      "Compare literal and symbolic reads side by side.",
+      "Pick the interpretation that best matches context."
+    ],
+    "rules": {
+      "maxCardsInPlay": 1,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This follow-up asks you to move from literal scene description into symbol, atmosphere, and implication. The goal is to keep the read grounded in imagery while still reaching deeper meaning.",
+    "stepPlan": [
+      {
+        "text": "Draw a card and list the literal visual facts first.",
+        "action": "draw",
+        "drawCount": 1
+      },
+      {
+        "text": "Infer symbolic subtext: motive, timing, or emotional tone.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Compare literal and symbolic reads side by side.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Pick the interpretation that best matches context.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-2-me-and-you",
+    "title": "Exercise Two - Me and you",
+    "status": "active",
+    "scenarioTemplate": "Contrast two perspectives to build empathy and role awareness in readings.",
+    "defaultRole": "co_learner",
+    "supportedRoles": [
+      "co_learner"
+    ],
+    "flowSteps": [
+      "Draw two cards: one for you and one for the other person.",
+      "Describe each card from its assigned perspective.",
+      "Swap viewpoints and reinterpret each card.",
+      "Summarize what changes when perspective shifts."
+    ],
+    "rules": {
+      "maxCardsInPlay": 2,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This exercise develops relational reading by separating perspectives. You practice distinguishing your own lens from another person's position, then deliberately swapping viewpoints.",
+    "stepPlan": [
+      {
+        "text": "Draw two cards: one for you and one for the other person.",
+        "action": "draw",
+        "drawCount": 2
+      },
+      {
+        "text": "Describe each card from its assigned perspective.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Swap viewpoints and reinterpret each card.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Summarize what changes when perspective shifts.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-3-common-ground",
+    "title": "Exercise Three - Exactly what do you two have in common anyway?",
+    "status": "active",
+    "scenarioTemplate": "Find shared symbols between cards quickly and consistently.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw two cards and scan for immediate common symbols.",
+      "Name one common thread in plain language.",
+      "Explain how that shared thread changes interpretation.",
+      "If no clear commonality appears, compare symbols again before moving on."
+    ],
+    "rules": {
+      "maxCardsInPlay": 2,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This drill looks for shared visual threads between cards to improve synthesis speed. Instead of reading each card in isolation, you identify common motifs and infer what they jointly emphasize.",
+    "stepPlan": [
+      {
+        "text": "Draw two cards and scan for immediate common symbols.",
+        "action": "draw",
+        "drawCount": 2
+      },
+      {
+        "text": "Name one common thread in plain language.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Explain how that shared thread changes interpretation.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "If no clear commonality appears, compare symbols again before moving on.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-4-from-here-to-there",
+    "title": "Exercise Four - From here to there",
+    "status": "active",
+    "scenarioTemplate": "Read cards as progression from state A to state B.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw two cards as current state and destination.",
+      "Describe what must change between the two.",
+      "Name likely friction in the transition.",
+      "End with one actionable bridge step."
+    ],
+    "rules": {
+      "maxCardsInPlay": 2,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This sequence reads movement from current state to destination. You focus on transition, obstacles, and actionable bridging rather than static card meanings.",
+    "stepPlan": [
+      {
+        "text": "Draw two cards as current state and destination.",
+        "action": "draw",
+        "drawCount": 2
+      },
+      {
+        "text": "Describe what must change between the two.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Name likely friction in the transition.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "End with one actionable bridge step.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-5-there-and-back-again",
+    "title": "Exercise Five - There and back again",
+    "status": "active",
+    "scenarioTemplate": "Use three-card sequencing to compare forward and reverse narrative flow.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw three cards and read left to right.",
+      "Read the same cards right to left.",
+      "Compare how chronology changes the meaning.",
+      "Choose the direction that best fits the question."
+    ],
+    "rules": {
+      "maxCardsInPlay": 3,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This exercise trains narrative direction. You read the same three-card line in both directions to see how sequence changes emphasis and storyline.",
+    "stepPlan": [
+      {
+        "text": "Draw three cards and read left to right.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Read the same cards right to left.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Compare how chronology changes the meaning.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Choose the direction that best fits the question.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-6-birds-of-a-feather",
+    "title": "Exercise Six - Birds of a feather",
+    "status": "active",
+    "scenarioTemplate": "Group-card pattern recognition across three-card clusters.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw three cards and identify repeating motifs.",
+      "Classify common traits (element, motion, mood, value).",
+      "Infer the shared thread in a single concise sentence.",
+      "Test the thread against one concrete scenario."
+    ],
+    "rules": {
+      "maxCardsInPlay": 3,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This pattern-recognition drill identifies repeating elements across a cluster. You group cards by motif and test whether the shared thread holds under context.",
+    "stepPlan": [
+      {
+        "text": "Draw three cards and identify repeating motifs.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Classify common traits (element, motion, mood, value).",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Infer the shared thread in a single concise sentence.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Test the thread against one concrete scenario.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-7-opening-up-a-card",
+    "title": "Exercise Seven - Hey! What does THIS card mean?",
+    "status": "active",
+    "scenarioTemplate": "Clarify a difficult card using aspecting or clarification cards.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Pick one difficult card as your target.",
+      "Draw up to three clarification cards around it.",
+      "Explain how each clarifier modifies the target card.",
+      "State one final interpretation with confidence level."
+    ],
+    "rules": {
+      "maxCardsInPlay": 4,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This clarification method deepens one difficult card by surrounding it with supporting cards. The emphasis is controlled expansion: clarifiers should illuminate, not distract.",
+    "stepPlan": [
+      {
+        "text": "Pick one difficult card as your target.",
+        "action": "draw",
+        "drawCount": 1
+      },
+      {
+        "text": "Draw up to three clarification cards around it.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Explain how each clarifier modifies the target card.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "State one final interpretation with confidence level.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-8-one-plus-one",
+    "title": "Exercise Eight - One plus one equals what?",
+    "status": "active",
+    "scenarioTemplate": "Blend paired card energies into a single coherent statement.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw two cards and interpret each one separately.",
+      "Combine both into one integrated message.",
+      "Try one alternate blend and compare clarity.",
+      "Keep the strongest combined interpretation."
+    ],
+    "rules": {
+      "maxCardsInPlay": 2,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This blend exercise fuses two card messages into one coherent statement. The practice goal is integration without flattening each card's distinct contribution.",
+    "stepPlan": [
+      {
+        "text": "Draw two cards and interpret each one separately.",
+        "action": "draw",
+        "drawCount": 2
+      },
+      {
+        "text": "Combine both into one integrated message.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Try one alternate blend and compare clarity.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Keep the strongest combined interpretation.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-9-one-plus-one-plus-one",
+    "title": "Exercise Nine - One plus one plus one equals what?",
+    "status": "active",
+    "scenarioTemplate": "Scale card blending from pairs to triples while preserving clarity.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw three cards and choose an anchor card.",
+      "Blend the other two cards around the anchor.",
+      "Produce one concise combined interpretation.",
+      "Refine wording until the statement is contradiction-free."
+    ],
+    "rules": {
+      "maxCardsInPlay": 3,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This scales pair blending to three-card synthesis. You preserve structure by anchoring the trio and then integrating supporting cards around that anchor.",
+    "stepPlan": [
+      {
+        "text": "Draw three cards and choose an anchor card.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Blend the other two cards around the anchor.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Produce one concise combined interpretation.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Refine wording until the statement is contradiction-free.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-10-never-ending-story",
+    "title": "Exercise Ten - The never-ending story",
+    "status": "active",
+    "scenarioTemplate": "Build a continuing narrative by chaining card transitions.",
+    "defaultRole": "co_learner",
+    "supportedRoles": [
+      "co_learner"
+    ],
+    "flowSteps": [
+      "Draw an initial three-card sequence and define the storyline premise.",
+      "Add three more cards one by one to extend the narrative.",
+      "Maintain continuity and clear cause-effect links.",
+      "Pause and summarize the major turning point."
+    ],
+    "rules": {
+      "maxCardsInPlay": 6,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This storytelling drill builds continuity across expanding sequences. You start with a base line, extend it card by card, and keep causal coherence in the evolving narrative.",
+    "stepPlan": [
+      {
+        "text": "Draw an initial three-card sequence and define the storyline premise.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Add three more cards one by one to extend the narrative.",
+        "action": "draw",
+        "drawCount": 3
+      },
+      {
+        "text": "Maintain continuity and clear cause-effect links.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Pause and summarize the major turning point.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "exercise-11-something-to-look-at",
+    "title": "Exercise Eleven - Something to look at",
+    "status": "active",
+    "scenarioTemplate": "Deep visual observation drill to sharpen symbolic noticing.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Draw one card and inspect fine visual details.",
+      "Describe color, direction, posture, and implied motion.",
+      "Translate those visual cues into reading meaning.",
+      "Compare with a familiar reference card from memory and note the key contrast."
+    ],
+    "rules": {
+      "maxCardsInPlay": 1,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "This visual-discipline exercise slows the read down to details you might normally skip. The intent is to train symbolic noticing so interpretations are evidence-based, not generic.",
+    "stepPlan": [
+      {
+        "text": "Draw one card and inspect fine visual details.",
+        "action": "draw",
+        "drawCount": 1
+      },
+      {
+        "text": "Describe color, direction, posture, and implied motion.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Translate those visual cues into reading meaning.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Compare with a familiar reference card from memory and note the key contrast.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  },
+  {
+    "id": "really-advanced-exercises",
+    "title": "Really Advanced Exercises",
+    "status": "active",
+    "scenarioTemplate": "High-complexity synthesis drills combining patterning, sequencing, and clarifiers.",
+    "defaultRole": "coach",
+    "supportedRoles": [
+      "coach"
+    ],
+    "flowSteps": [
+      "Define a complex scenario with multiple constraints.",
+      "Draw up to six cards and add clarifiers only where truly needed.",
+      "Track dominant patterns and card-to-card aspects.",
+      "Deliver a structured interpretation with practical next steps."
+    ],
+    "rules": {
+      "maxCardsInPlay": 10,
+      "allowAddNamedCard": true,
+      "allowEditCards": true,
+      "allowRemoveCards": true
+    },
+    "bookSummary": "These advanced drills combine sequencing, clarification, and cross-card patterning under tighter constraints. The goal is controlled complexity: structure first, then nuance.",
+    "stepPlan": [
+      {
+        "text": "Define a complex scenario with multiple constraints.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Draw up to six cards and add clarifiers only where truly needed.",
+        "action": "draw",
+        "drawCount": 6
+      },
+      {
+        "text": "Track dominant patterns and card-to-card aspects.",
+        "action": "manual",
+        "drawCount": 0
+      },
+      {
+        "text": "Deliver a structured interpretation with practical next steps.",
+        "action": "manual",
+        "drawCount": 0
+      }
+    ]
+  }
+]

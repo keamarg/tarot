@@ -1,0 +1,5 @@
+{
+  "training": "data/prompts/training.md",
+  "reading_upload": "data/prompts/reading-upload.md",
+  "reading_app_draw": "data/prompts/reading-app-draw.md"
+}

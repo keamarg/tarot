@@ -1,0 +1,253 @@
+[
+  {
+    "id": "one-card-daily",
+    "name": "One-Card Daily",
+    "description": "A concise daily anchor card.",
+    "slots": [
+      {
+        "id": "card-1",
+        "label": "Daily Focus",
+        "meaning": "The energy to work with today.",
+        "x": 50,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      }
+    ]
+  },
+  {
+    "id": "three-card",
+    "name": "Three-Card Spread",
+    "description": "Classic three-position reading.",
+    "slots": [
+      {
+        "id": "past",
+        "label": "Past",
+        "meaning": "What shaped the current situation.",
+        "x": 20,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+        "id": "present",
+        "label": "Present",
+        "meaning": "The current state.",
+        "x": 50,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+        "id": "future",
+        "label": "Future",
+        "meaning": "Likely direction if current trajectory continues.",
+        "x": 80,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      }
+    ]
+  },
+  {
+    "id": "past-present-future",
+    "name": "Past, Present, Future",
+    "description": "Temporal progression and momentum.",
+    "slots": [
+      {
+        "id": "past",
+        "label": "Past",
+        "meaning": "Root influences and prior causes.",
+        "x": 20,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+        "id": "present",
+        "label": "Present",
+        "meaning": "Immediate context and dynamics.",
+        "x": 50,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+        "id": "future",
+        "label": "Future",
+        "meaning": "Potential development over near term.",
+        "x": 80,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      }
+    ]
+  },
+  {
+    "id": "horseshoe",
+    "name": "Horseshoe",
+    "description": "Seven-card strategic overview.",
+    "slots": [
+      {
+      "id": "past",
+      "label": "Past",
+      "meaning": "Background context.",
+      "x": 10,
+      "y": 78,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "present",
+      "label": "Present",
+      "meaning": "Current moment.",
+      "x": 24,
+      "y": 58,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "hidden",
+      "label": "Hidden Influences",
+      "meaning": "Underlying forces.",
+      "x": 38,
+      "y": 33,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+        "id": "obstacles",
+        "label": "Obstacles",
+        "meaning": "What complicates movement.",
+        "x": 50,
+        "y": 20,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+      "id": "others",
+      "label": "External Influence",
+      "meaning": "People or systems affecting this.",
+      "x": 62,
+      "y": 33,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "advice",
+      "label": "Advice",
+      "meaning": "Constructive next move.",
+      "x": 76,
+      "y": 58,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "outcome",
+      "label": "Outcome",
+      "meaning": "Likely outcome path.",
+      "x": 90,
+      "y": 78,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      }
+    ]
+  },
+  {
+    "id": "celtic-cross",
+    "name": "Celtic Cross",
+    "description": "Ten-card deep diagnostic spread.",
+    "slots": [
+      {
+        "id": "present",
+        "label": "Present",
+        "meaning": "Current core situation.",
+        "x": 34,
+        "y": 50,
+        "rotationDeg": 0,
+        "faceDownAllowed": false
+      },
+      {
+        "id": "challenge",
+        "label": "Challenge",
+        "meaning": "Immediate challenge crossing the issue.",
+        "x": 34,
+        "y": 50,
+        "rotationDeg": 90,
+        "faceDownAllowed": false
+      },
+      {
+      "id": "foundation",
+      "label": "Foundation",
+      "meaning": "Deep root influence.",
+      "x": 34,
+      "y": 79,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "past",
+      "label": "Recent Past",
+      "meaning": "Influence fading from the past.",
+      "x": 15,
+      "y": 50,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "crown",
+      "label": "Conscious Aim",
+      "meaning": "What is known or consciously sought.",
+      "x": 34,
+      "y": 21,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "near-future",
+      "label": "Near Future",
+      "meaning": "What is likely approaching soon.",
+      "x": 53,
+      "y": 50,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "self",
+      "label": "Self",
+      "meaning": "Querent posture and self-perception.",
+      "x": 84,
+      "y": 85,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "environment",
+      "label": "Environment",
+      "meaning": "External influences and people.",
+      "x": 84,
+      "y": 61,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "hopes-fears",
+      "label": "Hopes and Fears",
+      "meaning": "Emotional tension around the issue.",
+      "x": 84,
+      "y": 37,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      },
+      {
+      "id": "outcome",
+      "label": "Outcome",
+      "meaning": "Likely trajectory if unchanged.",
+      "x": 84,
+      "y": 13,
+      "rotationDeg": 0,
+      "faceDownAllowed": false
+      }
+    ]
+  }
+]
