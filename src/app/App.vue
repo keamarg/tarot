@@ -3,7 +3,7 @@
     <header class="app-header">
       <div class="brand-wrap">
         <button type="button" class="brand-link" @click="requestNavigation('home')">
-          <img class="brand-symbol" src="/symbols/sigil-heptagram.svg" alt="" aria-hidden="true" />
+          <img class="brand-symbol" :src="brandSymbolUrl" alt="" aria-hidden="true" />
           <span>The Oracle Engine</span>
         </button>
       </div>
@@ -62,6 +62,7 @@
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { useSessionStore } from "@/app/sessionStore";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 
@@ -79,6 +80,7 @@ const hasActiveSession = computed(
   () => Boolean(sessionStore.trainingDraft?.hasStarted || sessionStore.readingDraft?.started)
 );
 const routeClass = computed(() => `route-${String(route.name ?? "home")}`);
+const brandSymbolUrl = publicAssetUrl("symbols/sigil-heptagram.svg");
 
 function leavePromptMessage(): string {
   return "Leave the current session? This will reset the current spread/exercise state.";

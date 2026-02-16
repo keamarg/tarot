@@ -106,6 +106,7 @@
 <script setup lang="ts">
 import { Pencil, Trash2 } from "lucide-vue-next";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from "vue";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { getCardById } from "@/domain/cards";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 
@@ -215,7 +216,7 @@ const cardImageUrl = computed(() => {
   if (!card.value) {
     return "";
   }
-  return `/cards/${card.value.image}`;
+  return publicAssetUrl(`cards/${card.value.image}`);
 });
 
 const backImageUrl = computed(() => {
@@ -223,15 +224,15 @@ const backImageUrl = computed(() => {
     return settingsStore.settings.customCardBackDataUrl;
   }
   if (settingsStore.settings.cardBackId === "prism") {
-    return "/backs/prism.svg";
+    return publicAssetUrl("backs/prism.svg");
   }
   if (settingsStore.settings.cardBackId === "eros") {
-    return "/backs/eros.svg";
+    return publicAssetUrl("backs/eros.svg");
   }
   if (settingsStore.settings.cardBackId === "centennial") {
-    return "/backs/centennial.webp";
+    return publicAssetUrl("backs/centennial.webp");
   }
-  return "/backs/original.webp";
+  return publicAssetUrl("backs/original.webp");
 });
 
 const imageUrl = computed(() => ((props.faceUp ?? true) ? cardImageUrl.value : backImageUrl.value));

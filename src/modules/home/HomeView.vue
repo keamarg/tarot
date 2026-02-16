@@ -7,7 +7,7 @@
           :key="`${cardFile}-${index}`"
           class="floating-card"
           :class="`card-${index + 1}`"
-          :src="`/cards/${cardFile}`"
+          :src="cardImageUrl(cardFile)"
           alt=""
         />
       </div>
@@ -32,6 +32,7 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+import { publicAssetUrl } from "@/app/publicAsset";
 
 const floatingSets: string[][] = [
   [
@@ -47,6 +48,10 @@ const floatingSets: string[][] = [
 ];
 
 const selectedFloatingSet = floatingSets[Math.floor(Math.random() * floatingSets.length)];
+
+function cardImageUrl(cardFile: string): string {
+  return publicAssetUrl(`cards/${cardFile}`);
+}
 </script>
 
 <style scoped>

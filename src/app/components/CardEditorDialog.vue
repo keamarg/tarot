@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { cards } from "@/domain/cards";
 
 const props = defineProps<{
@@ -51,7 +52,7 @@ const selectedCardImage = computed(() => {
   if (!selectedCard) {
     return "";
   }
-  return `/cards/${selectedCard.image}`;
+  return publicAssetUrl(`cards/${selectedCard.image}`);
 });
 
 watch(

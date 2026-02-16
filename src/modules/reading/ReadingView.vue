@@ -264,6 +264,7 @@ import SpreadBoard from "@/app/components/SpreadBoard.vue";
 import CardEditorDialog from "@/app/components/CardEditorDialog.vue";
 import { useAutoScroll } from "@/app/composables/useAutoScroll";
 import { appendAssistantMessageIncremental } from "@/app/composables/useIncrementalDialogue";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { createLLMAdapter } from "@/ai/factory";
 import { MockAdapter } from "@/ai/mockAdapter";
 import { hasApiBaseOverride } from "@/ai/apiBase";
@@ -403,7 +404,7 @@ const loadingCardImageUrl = computed(() => {
     return "";
   }
   const card = cardFromId(loadingCardPreview.value.cardId);
-  return `/cards/${card.image}`;
+  return publicAssetUrl(`cards/${card.image}`);
 });
 const loadingCardAlt = computed(() => {
   if (!loadingCardPreview.value) {

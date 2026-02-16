@@ -4,7 +4,7 @@ const TrainingView = () => import("@/modules/training/TrainingView.vue");
 const ReadingView = () => import("@/modules/reading/ReadingView.vue");
 const SettingsView = () => import("@/modules/settings/SettingsView.vue");
 export const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: "/",

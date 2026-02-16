@@ -107,6 +107,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { fallbackModelsFor, fetchModelsForProvider, type ModelCatalogItem } from "@/ai/modelCatalog";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { hasApiBaseOverride } from "@/ai/apiBase";
@@ -137,15 +138,15 @@ const backImageUrl = computed(() => {
     return settings.value.customCardBackDataUrl;
   }
   if (settings.value.cardBackId === "prism") {
-    return "/backs/prism.svg";
+    return publicAssetUrl("backs/prism.svg");
   }
   if (settings.value.cardBackId === "eros") {
-    return "/backs/eros.svg";
+    return publicAssetUrl("backs/eros.svg");
   }
   if (settings.value.cardBackId === "centennial") {
-    return "/backs/centennial.webp";
+    return publicAssetUrl("backs/centennial.webp");
   }
-  return "/backs/original.webp";
+  return publicAssetUrl("backs/original.webp");
 });
 
 const qualityHint = computed(() => {

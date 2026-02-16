@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { getCardById } from "@/domain/cards";
 async function loadImageDataUrl(url) {
     const response = await fetch(url);
@@ -49,7 +50,7 @@ async function createSpreadPreviewDataUrl(spread, cards) {
         }
         if (draw) {
             const card = getCardById(draw.cardId);
-            const imgPath = `/cards/${card.image}`;
+            const imgPath = publicAssetUrl(`cards/${card.image}`);
             try {
                 const dataUrl = await loadImageDataUrl(imgPath);
                 const image = await new Promise((resolve, reject) => {
