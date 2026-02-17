@@ -3,7 +3,7 @@ import { prompts } from "@/ai/prompts";
 import { maxTokensFromQuality, readingMaxTokensFromQuality, qualityDirective, readingTemperatureFromQuality, trainingTemperatureFromQuality, visionTemperatureFromQuality } from "@/ai/quality";
 import { parseReadingResponse, parseTrainingResponse, parseVisionResponse } from "@/ai/parsers";
 import { cardIdFromName } from "@/ai/cardNameMatch";
-import { hasApiBaseOverride, withApiBase } from "@/ai/apiBase";
+import { hasServerProxy, withApiBase } from "@/ai/apiBase";
 function extractGoogleText(data) {
     const parts = data.candidates?.[0]?.content?.parts ?? [];
     const text = parts.map((part) => part.text ?? "").join("\n").trim();
@@ -22,8 +22,8 @@ export class GoogleAdapter {
     endpoint() {
         const trimmedKey = this.apiKey.trim();
         const keyQuery = trimmedKey ? `?key=${encodeURIComponent(trimmedKey)}` : "";
-        if (hasApiBaseOverride()) {
-            return withApiBase(`/api/google/models/${this.model}:generateContent${keyQuery}`);
+        if (hasServerProxy()) {
+            return withApiBase(`/api/google/models/${this.model}:generateContent`);
         }
         if (import.meta.env.DEV) {
             return `/api/google/models/${this.model}:generateContent${keyQuery}`;

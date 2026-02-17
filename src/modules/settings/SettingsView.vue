@@ -45,7 +45,7 @@
           />
         </label>
         <p v-if="usesServerProxy" class="small full-width">
-          Server proxy mode detected via <code>VITE_API_BASE_URL</code>: provider secrets can be kept server-side.
+          Server proxy mode detected: provider secrets can be kept server-side.
         </p>
 
         <label>
@@ -110,7 +110,7 @@ import { computed, ref, watch } from "vue";
 import { publicAssetUrl } from "@/app/publicAsset";
 import { fallbackModelsFor, fetchModelsForProvider, type ModelCatalogItem } from "@/ai/modelCatalog";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
-import { hasApiBaseOverride } from "@/ai/apiBase";
+import { hasServerProxy } from "@/ai/apiBase";
 import type { ProviderId, QualityPreset, ReversalMode, UISkin } from "@/domain/types";
 
 const settingsStore = useSettingsStore();
@@ -118,7 +118,7 @@ const settings = computed(() => settingsStore.settings);
 const providerModels = ref<ModelCatalogItem[]>(fallbackModelsFor(settings.value.provider));
 const isLoadingModels = ref(false);
 const modelLoadError = ref("");
-const usesServerProxy = hasApiBaseOverride();
+const usesServerProxy = hasServerProxy();
 
 const apiKeyPlaceholder = computed(() => {
   if (usesServerProxy && !settings.value.apiKeySession.trim()) {

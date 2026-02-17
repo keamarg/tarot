@@ -14,8 +14,8 @@
   - cards/spreads/exercises/models JSON + prompt markdown assets
 - `scripts`
   - asset fetch + validation pipeline
-- `worker`
-  - Cloudflare Worker proxy for production API routing
+- `api`
+  - Vercel serverless proxy routes for production API routing
 
 ## Canonical Entry Points
 
@@ -45,7 +45,7 @@
 4. AI adapter flow
 - module -> adapter factory -> provider adapter or mock adapter.
 - adapter builds structured payload and enforces JSON-shaped responses via parsers.
-- if `VITE_API_BASE_URL` is configured, live calls route through server proxy endpoints.
+- if server proxy mode is enabled (`VITE_SERVER_PROXY_ENABLED=1` or `VITE_API_BASE_URL` configured), live calls route through proxy endpoints.
 
 5. Export flow
 - reading view composes output and card/spread state.

@@ -1,5 +1,5 @@
 import rawModels from "@data/models.json";
-import { hasApiBaseOverride, withApiBase } from "@/ai/apiBase";
+import { hasServerProxy, withApiBase } from "@/ai/apiBase";
 const FALLBACK_MODELS = rawModels.sort((a, b) => a.label.localeCompare(b.label));
 export function fallbackModelsFor(provider) {
     return dedupeById(FALLBACK_MODELS.filter((model) => model.provider === provider && isLowCostModel(provider, model.id)));
@@ -38,7 +38,7 @@ function isLowCostModel(provider, id) {
 }
 export async function fetchModelsForProvider(provider, apiKey) {
     const trimmedKey = apiKey.trim();
-    const usesProxy = hasApiBaseOverride();
+    const usesProxy = hasServerProxy() || import.meta.env.DEV;
     if (!trimmedKey && !usesProxy) {
         return fallbackModelsFor(provider);
     }
@@ -50,7 +50,7 @@ export async function fetchModelsForProvider(provider, apiKey) {
             headers["x-api-key"] = trimmedKey;
             headers["anthropic-dangerous-direct-browser-access"] = "true";
         }
-        const response = await fetch(withApiBase("/api/anthropic/models"), {
+        const response = await fetch(usesProxy ? withApiBase("/api/anthropic/models") : "https://api.anthropic.com/v1/models", {
             headers
         });
         if (!response.ok) {
@@ -72,7 +72,7 @@ export async function fetchModelsForProvider(provider, apiKey) {
         if (trimmedKey) {
             headers.authorization = `Bearer ${trimmedKey}`;
         }
-        const response = await fetch(withApiBase("/api/openai/models"), {
+        const response = await fetch(usesProxy ? withApiBase("/api/openai/models") : "https://api.openai.com/v1/models", {
             headers
         });
         if (!response.ok) {
@@ -90,8 +90,10 @@ export async function fetchModelsForProvider(provider, apiKey) {
             .sort((a, b) => a.label.localeCompare(b.label));
         return models.length ? dedupeById(models) : fallbackModelsFor(provider);
     }
-    const googleModelsPath = usesProxy || !trimmedKey ? "/api/google/models" : `/api/google/models?key=${encodeURIComponent(trimmedKey)}`;
-    const response = await fetch(withApiBase(googleModelsPath));
+    const googleModelsUrl = usesProxy
+        ? withApiBase("/api/google/models")
+        : `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(trimmedKey)}`;
+    const response = await fetch(googleModelsUrl);
     if (!response.ok) {
         throw new Error(`Google models request failed (${response.status}).`);
     }

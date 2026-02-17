@@ -10,7 +10,7 @@ import {
 } from "@/ai/quality";
 import { parseReadingResponse, parseTrainingResponse, parseVisionResponse } from "@/ai/parsers";
 import { cardIdFromName } from "@/ai/cardNameMatch";
-import { hasApiBaseOverride, withApiBase } from "@/ai/apiBase";
+import { hasServerProxy, withApiBase } from "@/ai/apiBase";
 import type {
   LLMAdapter,
   ReadingInput,
@@ -54,8 +54,8 @@ export class GoogleAdapter implements LLMAdapter {
   private endpoint(): string {
     const trimmedKey = this.apiKey.trim();
     const keyQuery = trimmedKey ? `?key=${encodeURIComponent(trimmedKey)}` : "";
-    if (hasApiBaseOverride()) {
-      return withApiBase(`/api/google/models/${this.model}:generateContent${keyQuery}`);
+    if (hasServerProxy()) {
+      return withApiBase(`/api/google/models/${this.model}:generateContent`);
     }
     if (import.meta.env.DEV) {
       return `/api/google/models/${this.model}:generateContent${keyQuery}`;

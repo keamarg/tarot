@@ -267,7 +267,7 @@ import { appendAssistantMessageIncremental } from "@/app/composables/useIncremen
 import { publicAssetUrl } from "@/app/publicAsset";
 import { createLLMAdapter } from "@/ai/factory";
 import { MockAdapter } from "@/ai/mockAdapter";
-import { hasApiBaseOverride } from "@/ai/apiBase";
+import { hasServerProxy } from "@/ai/apiBase";
 import { cardIdFromName } from "@/ai/cardNameMatch";
 import { cards } from "@/domain/cards";
 import { drawCards } from "@/domain/draw";
@@ -280,6 +280,7 @@ import type { DialogueEntry, DrawnCard, ReadingOutput, SpreadDefinition } from "
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
 const router = useRouter();
+const usesServerProxy = hasServerProxy();
 
 const isStarted = ref(sessionStore.readingDraft?.started ?? false);
 const setupOpen = ref(!isStarted.value);
@@ -527,7 +528,7 @@ function getAdapter() {
   if (settingsStore.settings.qaUseMock) {
     return new MockAdapter();
   }
-  if (settingsStore.hasApiKey || hasApiBaseOverride()) {
+  if (settingsStore.hasApiKey || usesServerProxy) {
     return createLLMAdapter({
       provider: settingsStore.settings.provider,
       apiKey: settingsStore.settings.apiKeySession.trim(),

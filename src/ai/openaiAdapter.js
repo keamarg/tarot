@@ -3,12 +3,10 @@ import { prompts } from "@/ai/prompts";
 import { maxTokensFromQuality, readingMaxTokensFromQuality, qualityDirective, readingTemperatureFromQuality, trainingTemperatureFromQuality, visionTemperatureFromQuality } from "@/ai/quality";
 import { parseReadingResponse, parseTrainingResponse, parseVisionResponse } from "@/ai/parsers";
 import { cardIdFromName } from "@/ai/cardNameMatch";
-import { hasApiBaseOverride, withApiBase } from "@/ai/apiBase";
-const OPENAI_URL = hasApiBaseOverride()
-    ? withApiBase("/api/openai/chat/completions")
-    : import.meta.env.DEV
-        ? "/api/openai/chat/completions"
-        : "https://api.openai.com/v1/chat/completions";
+import { hasServerProxy, withApiBase } from "@/ai/apiBase";
+const OPENAI_PROXY_URL = withApiBase("/api/openai/chat/completions");
+const OPENAI_DIRECT_URL = "https://api.openai.com/v1/chat/completions";
+const SHOULD_USE_PROXY = hasServerProxy() || import.meta.env.DEV;
 function extractOpenAIText(data) {
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
@@ -34,7 +32,7 @@ export class OpenAIAdapter {
         if (trimmedKey) {
             headers.authorization = `Bearer ${trimmedKey}`;
         }
-        const response = await fetch(OPENAI_URL, {
+        const response = await fetch(SHOULD_USE_PROXY ? OPENAI_PROXY_URL : OPENAI_DIRECT_URL, {
             method: "POST",
             headers,
             body: JSON.stringify({

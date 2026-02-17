@@ -10,7 +10,7 @@ import {
 } from "@/ai/quality";
 import { parseReadingResponse, parseTrainingResponse, parseVisionResponse } from "@/ai/parsers";
 import { cardIdFromName } from "@/ai/cardNameMatch";
-import { hasApiBaseOverride, withApiBase } from "@/ai/apiBase";
+import { hasServerProxy, withApiBase } from "@/ai/apiBase";
 import type {
   LLMAdapter,
   ReadingInput,
@@ -20,11 +20,9 @@ import type {
   VisionDetectionResult
 } from "@/domain/types";
 
-const OPENAI_URL = hasApiBaseOverride()
-  ? withApiBase("/api/openai/chat/completions")
-  : import.meta.env.DEV
-    ? "/api/openai/chat/completions"
-    : "https://api.openai.com/v1/chat/completions";
+const OPENAI_PROXY_URL = withApiBase("/api/openai/chat/completions");
+const OPENAI_DIRECT_URL = "https://api.openai.com/v1/chat/completions";
+const SHOULD_USE_PROXY = hasServerProxy() || import.meta.env.DEV;
 
 interface OpenAIMessageText {
   type: "text";
@@ -74,7 +72,7 @@ export class OpenAIAdapter implements LLMAdapter {
       headers.authorization = `Bearer ${trimmedKey}`;
     }
 
-    const response = await fetch(OPENAI_URL, {
+    const response = await fetch(SHOULD_USE_PROXY ? OPENAI_PROXY_URL : OPENAI_DIRECT_URL, {
       method: "POST",
       headers,
       body: JSON.stringify({

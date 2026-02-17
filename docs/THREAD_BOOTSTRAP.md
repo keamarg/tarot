@@ -21,7 +21,7 @@ Constraints to honor:
 - Local/private app only in v1.
 - Session-based state and settings.
 - In dev, provider calls use Vite proxy routes under `/api/*`.
-- Optional production mode uses `VITE_API_BASE_URL` + Worker proxy.
+- Optional production mode uses `VITE_API_BASE_URL` + server proxy.
 - `.ts` and `.vue` files are source of truth; generated `.js`/`.d.ts` under `src` are not authoritative.
 
 When done reading, summarize:

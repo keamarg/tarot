@@ -60,5 +60,7 @@ Pipeline scripts:
 
 ## Deployment
 
-- GitHub Pages + Cloudflare Worker plan:
+- Vercel (frontend + `/api` proxy):
+  - `docs/DEPLOYMENT_VERCEL.md`
+- Legacy GitHub Pages notes:
   - `docs/DEPLOYMENT_GITHUB_PAGES.md`

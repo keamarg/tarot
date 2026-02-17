@@ -13,13 +13,7 @@ npm run assets:fetch
 npm run assets:validate
 ```
 
-Worker local proxy (optional):
-
-```bash
-cd worker
-npm install
-npm run dev
-```
+Vercel proxy routes live under `api/*` and run in deployment (no extra local command required for normal frontend dev).
 
 ## Primary Manual Test Paths
 

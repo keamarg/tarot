@@ -207,7 +207,7 @@ import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { useSessionStore } from "@/app/sessionStore";
 import { createLLMAdapter } from "@/ai/factory";
 import { MockAdapter } from "@/ai/mockAdapter";
-import { hasApiBaseOverride } from "@/ai/apiBase";
+import { hasServerProxy } from "@/ai/apiBase";
 import type { DrawMode, DrawnCard, TrainingRole } from "@/domain/types";
 
 type StepType = "draw" | "manual";
@@ -220,7 +220,7 @@ interface NormalizedStep {
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
 const router = useRouter();
-const usesServerProxy = hasApiBaseOverride();
+const usesServerProxy = hasServerProxy();
 
 const selectedExerciseId = ref(sessionStore.trainingDraft?.exerciseId ?? activeExercises[0]?.id ?? "");
 const drawMode = ref<DrawMode>(sessionStore.trainingDraft?.drawMode ?? "app");

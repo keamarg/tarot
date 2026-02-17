@@ -7,7 +7,7 @@
   - outcome: reduce accidental edits and context ambiguity
 
 - `[MUST][Done]` Add production-safe API architecture note and transition plan.
-  - outcome: documented GitHub Pages + Cloudflare Worker deployment path in `docs/DEPLOYMENT_GITHUB_PAGES.md`
+  - outcome: documented GitHub Pages + external proxy deployment path in `docs/DEPLOYMENT_GITHUB_PAGES.md`
 
 ## Quality Improvements
 
