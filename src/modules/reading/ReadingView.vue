@@ -14,31 +14,54 @@
         </header>
 
         <div class="board-shell">
-          <SpreadBoard
-            :spread="activeSpread"
-            :cards="activeCards"
-            editable
-            :show-header="false"
-            :minimal-surface="true"
-            :reveal-enabled="mode === 'app_draw' && !isReading"
-            :revealable-index="mode === 'app_draw' ? revealedCount : -1"
-            reveal-label="Turn Card"
-            @edit-card="(index) => openEditor(mode, index)"
-            @remove-card="(index) => removeCard(mode, index)"
-            @add-card="(index) => openEditorForAdd(mode, index)"
-            @reveal-card="revealCard"
-          />
-          <div v-if="showBoardLoading" class="board-loading">
-            <div class="spinner" aria-hidden="true"></div>
-            <img
-              v-if="loadingCardImageUrl"
-              class="board-loading-card"
-              :src="loadingCardImageUrl"
-              :alt="loadingCardAlt"
-              :style="loadingCardStyle"
+          <template v-if="showShuffleStage">
+            <RitualShuffleDeck
+              :deck-back-url="selectedDeckBackUrl"
+              :reduced-motion="settingsStore.settings.reducedEffects"
+              @complete="onShuffleComplete"
+              @activate="onShuffleActivate"
             />
-            <p>{{ boardLoadingText }}</p>
-          </div>
+          </template>
+
+          <template v-else-if="showFanPicker">
+            <RitualFanPicker
+              :candidate-count="fanCandidateCount"
+              :pick-count="fanPickCount"
+              :selected-indices="ritualPickOrder"
+              :deck-back-url="selectedDeckBackUrl"
+              :disabled="isReading"
+              @update:selected-indices="updateRitualPickOrder"
+              @complete="finalizeFanPick"
+            />
+          </template>
+
+          <template v-else>
+            <SpreadBoard
+              :spread="activeSpread"
+              :cards="activeCards"
+              editable
+              :show-header="false"
+              :minimal-surface="true"
+              :reveal-enabled="canRevealFromBoard"
+              :revealable-index="mode === 'app_draw' ? revealedCount : -1"
+              reveal-label="Turn Card"
+              @edit-card="(index) => openEditor(mode, index)"
+              @remove-card="(index) => removeCard(mode, index)"
+              @add-card="(index) => openEditorForAdd(mode, index)"
+              @reveal-card="revealCard"
+            />
+            <div v-if="showBoardLoading" class="board-loading">
+              <div class="spinner" aria-hidden="true"></div>
+              <img
+                v-if="loadingCardImageUrl"
+                class="board-loading-card"
+                :src="loadingCardImageUrl"
+                :alt="loadingCardAlt"
+                :style="loadingCardStyle"
+              />
+              <p>{{ boardLoadingText }}</p>
+            </div>
+          </template>
         </div>
 
         <div class="board-actions">
@@ -67,7 +90,18 @@
       <article class="card dialogue-card">
         <h3>Reading Dialogue</h3>
 
-        <template v-if="mode === 'upload'">
+        <template v-if="showQuestionPrompt">
+          <RitualQuestionPrompt
+            v-model:question="ritualQuestion"
+            :crystal-mode="selectedScene?.crystalPrompt"
+            :voice-enabled="settingsStore.settings.voiceEnabled"
+            :voice-volume="settingsStore.settings.voiceVolume"
+            @submit="submitRitualQuestion"
+          />
+          <p class="small">You can continue without a question, but your reading will be less focused.</p>
+        </template>
+
+        <template v-else-if="mode === 'upload'">
           <section class="reading-status">
             <p class="small">Mode: Upload image</p>
             <p class="small">Detected spread: {{ uploadSpread.name }}</p>
@@ -262,9 +296,11 @@ import { computed, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import SpreadBoard from "@/app/components/SpreadBoard.vue";
 import CardEditorDialog from "@/app/components/CardEditorDialog.vue";
+import RitualShuffleDeck from "@/modules/ritual/components/RitualShuffleDeck.vue";
+import RitualFanPicker from "@/modules/ritual/components/RitualFanPicker.vue";
+import RitualQuestionPrompt from "@/modules/ritual/components/RitualQuestionPrompt.vue";
 import { useAutoScroll } from "@/app/composables/useAutoScroll";
 import { appendAssistantMessageIncremental } from "@/app/composables/useIncrementalDialogue";
-import { publicAssetUrl } from "@/app/publicAsset";
 import { createLLMAdapter } from "@/ai/factory";
 import { MockAdapter } from "@/ai/mockAdapter";
 import { hasServerProxy } from "@/ai/apiBase";
@@ -275,7 +311,17 @@ import { getSpreadById, spreads } from "@/domain/spreads";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { useSessionStore } from "@/app/sessionStore";
 import { exportReadingPdf } from "@/modules/export/readingPdf";
-import type { DialogueEntry, DrawnCard, ReadingOutput, SpreadDefinition } from "@/domain/types";
+import { getAmbientSceneById } from "@/modules/decks/deckCatalog";
+import { resolveDeckBackImage, resolveDeckCardImage } from "@/modules/decks/deckResolver";
+import {
+  READING_LIFECYCLE_VERSION,
+  createInitialRitualState,
+  nextReadingPhase,
+  shouldShowQuestionPrompt,
+  supportsFanPicking
+} from "@/modules/ritual/lifecycle";
+import { emitAmbienceCue } from "@/modules/ambience/audio/ambienceBus";
+import type { DialogueEntry, DrawnCard, ReadingLifecyclePhase, ReadingOutput, SpreadDefinition } from "@/domain/types";
 
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
@@ -287,6 +333,19 @@ const setupOpen = ref(!isStarted.value);
 const mode = ref<"upload" | "app_draw">(sessionStore.readingDraft?.source ?? "app_draw");
 const setupSpreadId = ref(sessionStore.readingDraft?.spreadId ?? "three-card");
 const setupUploadInputRef = ref<HTMLInputElement | null>(null);
+const ritualState = ref(createInitialRitualState(sessionStore.readingDraft?.source ?? "app_draw"));
+const lifecyclePhase = ref<ReadingLifecyclePhase>(
+  sessionStore.readingDraft?.ritualPhase ??
+    (sessionStore.readingDraft?.source === "upload"
+      ? "followup"
+      : sessionStore.readingDraft?.cards?.length
+        ? "reveal"
+        : "setup")
+);
+const ritualQuestion = ref(sessionStore.readingDraft?.questionText ?? "");
+const ritualQuestionSkipped = ref(Boolean(sessionStore.readingDraft?.questionSkipped));
+const ritualPickOrder = ref<number[]>(sessionStore.readingDraft?.pickOrder ?? []);
+const ritualCandidateCards = ref<DrawnCard[]>([]);
 
 const uploadImageDataUrl = ref(
   sessionStore.readingDraft?.source === "upload" ? sessionStore.readingDraft.uploadedImageDataUrl ?? "" : ""
@@ -356,7 +415,12 @@ const activeCards = computed(() => (mode.value === "upload" ? uploadCards.value 
 const popupReading = computed(() => (mode.value === "upload" ? uploadReading.value : appReading.value));
 const hasUploadCards = computed(() => uploadCards.value.some((card) => Boolean(card)));
 const uploadAssignedCount = computed(() => uploadCards.value.filter((card) => Boolean(card)).length);
-const canRevealNext = computed(() => mode.value === "app_draw" && revealedCount.value < appSpread.value.slots.length);
+const canRevealNext = computed(
+  () =>
+    mode.value === "app_draw" &&
+    (lifecyclePhase.value === "reveal" || lifecyclePhase.value === "followup") &&
+    revealedCount.value < appSpread.value.slots.length
+);
 const appRevealPercent = computed(() => {
   const total = appSpread.value.slots.length;
   if (!total) {
@@ -365,6 +429,12 @@ const appRevealPercent = computed(() => {
   return Math.min(100, Math.round((revealedCount.value / total) * 100));
 });
 const appSpreadGuidance = computed(() => {
+  if (lifecyclePhase.value === "shuffle") {
+    return "Shuffle sequence in progress. Activate the deck to continue.";
+  }
+  if (lifecyclePhase.value === "pick") {
+    return "Select cards in your preferred order from the fan.";
+  }
   const baseBySpread: Record<string, string> = {
     "one-card-daily": "Hold a single clear question in mind, reveal the card, then ask one follow-up for practical focus.",
     "three-card": "Ask one focused question, reveal cards in order, then connect them as a short story.",
@@ -404,8 +474,7 @@ const loadingCardImageUrl = computed(() => {
   if (pendingAction.value !== "next" || !loadingCardPreview.value) {
     return "";
   }
-  const card = cardFromId(loadingCardPreview.value.cardId);
-  return publicAssetUrl(`cards/${card.image}`);
+  return resolveDeckCardImage(settingsStore.settings.deckId, loadingCardPreview.value.cardId);
 });
 const loadingCardAlt = computed(() => {
   if (!loadingCardPreview.value) {
@@ -417,6 +486,34 @@ const loadingCardAlt = computed(() => {
 const loadingCardStyle = computed(() => ({
   transform: loadingCardPreview.value?.reversed ? "rotate(180deg)" : "none"
 }));
+const selectedDeckBackUrl = computed(() => resolveDeckBackImage(settingsStore.settings.deckId));
+const selectedScene = computed(() => getAmbientSceneById(settingsStore.settings.sceneId));
+const showQuestionPrompt = computed(() =>
+  shouldShowQuestionPrompt(lifecyclePhase.value, settingsStore.settings.ritualPromptsEnabled)
+);
+const showShuffleStage = computed(
+  () => mode.value === "app_draw" && lifecyclePhase.value === "shuffle"
+);
+const showFanPicker = computed(
+  () => mode.value === "app_draw" && lifecyclePhase.value === "pick"
+);
+const canRevealFromBoard = computed(
+  () =>
+    mode.value === "upload" ||
+    (mode.value === "app_draw" &&
+      (lifecyclePhase.value === "reveal" || lifecyclePhase.value === "followup" || lifecyclePhase.value === "full") &&
+      !isReading.value)
+);
+const fanPickCount = computed(() => {
+  if (appSpread.value.id === "one-card-daily") {
+    return 1;
+  }
+  if (appSpread.value.id === "three-card") {
+    return 3;
+  }
+  return 0;
+});
+const fanCandidateCount = computed(() => Math.max(10, fanPickCount.value * 4));
 
 const { containerRef: uploadMessagesRef, handleScroll: onUploadMessagesScroll, scrollToBottom: scrollUploadToBottom } = useAutoScroll(
   computed(() => uploadDialogue.value.length)
@@ -434,6 +531,10 @@ watch(appSpreadId, () => {
   revealedCount.value = Math.min(revealedCount.value, appSpread.value.slots.length);
 });
 
+watch(readingPopupOpen, (open) => {
+  emitAmbienceCue(open ? "modal-open" : "modal-close");
+});
+
 watch(
   [
     mode,
@@ -448,7 +549,12 @@ watch(
     appCards,
     appReading,
     appDialogue,
-    revealedCount
+    revealedCount,
+    lifecyclePhase,
+    ritualQuestion,
+    ritualQuestionSkipped,
+    ritualPickOrder,
+    () => settingsStore.settings.deckId
   ],
   () => {
     if (!isStarted.value) {
@@ -466,7 +572,13 @@ watch(
         uploadedImageDataUrl: uploadImageDataUrl.value,
         uploadedFileName: uploadFileName.value,
         revealedCount: uploadCards.value.filter((card) => Boolean(card)).length,
-        dialogue: uploadDialogue.value
+        dialogue: uploadDialogue.value,
+        ritualPhase: lifecyclePhase.value,
+        questionText: ritualQuestion.value,
+        questionSkipped: ritualQuestionSkipped.value,
+        pickOrder: ritualPickOrder.value,
+        selectedDeckId: settingsStore.settings.deckId,
+        lifecycleVersion: READING_LIFECYCLE_VERSION
       });
       return;
     }
@@ -479,7 +591,13 @@ watch(
       lastOutput: appReading.value,
       revealedCount: revealedCount.value,
       nextRevealIndex: revealedCount.value,
-      dialogue: appDialogue.value
+      dialogue: appDialogue.value,
+      ritualPhase: lifecyclePhase.value,
+      questionText: ritualQuestion.value,
+      questionSkipped: ritualQuestionSkipped.value,
+      pickOrder: ritualPickOrder.value,
+      selectedDeckId: settingsStore.settings.deckId,
+      lifecycleVersion: READING_LIFECYCLE_VERSION
     });
   },
   { deep: true }
@@ -597,7 +715,11 @@ function buildReadingInputFromIndices(
       phase: options.phase,
       revealedCount: options.revealedCount,
       totalSlots: spread.slots.length,
-      currentSlotId: options.currentSlotId
+      currentSlotId: options.currentSlotId,
+      questionText: ritualQuestion.value.trim(),
+      deckId: settingsStore.settings.deckId,
+      ritualPhase: lifecyclePhase.value,
+      isUploadMode: options.mode === "upload"
     }
   };
 }
@@ -620,13 +742,121 @@ function initializeAppDrawDeck() {
   appQuestion.value = "";
 }
 
+function prepareFanCandidates() {
+  if (!supportsFanPicking(appSpread.value.id) || fanPickCount.value <= 0) {
+    ritualCandidateCards.value = [];
+    ritualPickOrder.value = [];
+    return;
+  }
+
+  ritualCandidateCards.value = drawCards({
+    count: Math.min(cards.length, fanCandidateCount.value),
+    reversalMode: settingsStore.settings.reversalMode,
+    seed: undefined
+  }).map((card) => ({
+    ...card,
+    faceUp: false
+  }));
+  ritualPickOrder.value = [];
+}
+
+function onShuffleComplete() {
+  ritualState.value.shuffleCompleted = true;
+  emitAmbienceCue("shuffle-end");
+}
+
+function onShuffleActivate() {
+  ritualState.value.deckActivated = true;
+  emitAmbienceCue("deck-activate");
+
+  if (supportsFanPicking(appSpread.value.id) && fanPickCount.value > 0) {
+    prepareFanCandidates();
+    lifecyclePhase.value = "pick";
+    return;
+  }
+
+  initializeAppDrawDeck();
+  lifecyclePhase.value = "reveal";
+}
+
+function updateRitualPickOrder(indices: number[]) {
+  ritualPickOrder.value = indices;
+  if (indices.length > 0) {
+    emitAmbienceCue("card-pick");
+  }
+}
+
+function finalizeFanPick(indices: number[]) {
+  if (!indices.length || fanPickCount.value <= 0) {
+    return;
+  }
+
+  const selected = indices
+    .slice(0, fanPickCount.value)
+    .map((index) => ritualCandidateCards.value[index])
+    .filter(Boolean)
+    .map((card, index) => ({
+      ...card,
+      reversed: shouldForceUpright(appSpread.value, index) ? false : card.reversed,
+      faceUp: false
+    }));
+
+  if (selected.length !== fanPickCount.value) {
+    return;
+  }
+
+  appCards.value = normalizeCards(appSpread.value, selected);
+  revealedCount.value = 0;
+  appReading.value = undefined;
+  appNeedsUpdate.value = false;
+  appDialogue.value = [];
+  appQuestion.value = "";
+  lifecyclePhase.value = "reveal";
+  emitAmbienceCue("card-pick");
+}
+
+function submitRitualQuestion(payload: { skipped: boolean }) {
+  ritualQuestionSkipped.value = payload.skipped;
+  ritualQuestion.value = payload.skipped ? "" : ritualQuestion.value.trim();
+  ritualState.value.questionText = ritualQuestion.value;
+  ritualState.value.questionSkipped = payload.skipped;
+
+  const nextPhase = nextReadingPhase(lifecyclePhase.value, {
+    mode: mode.value,
+    spreadId: mode.value === "upload" ? uploadSpreadId.value : appSpreadId.value
+  });
+  lifecyclePhase.value = nextPhase;
+
+  if (mode.value === "upload") {
+    void detectSpread();
+    return;
+  }
+
+  if (nextPhase === "shuffle") {
+    emitAmbienceCue("shuffle-start");
+  }
+}
+
 function startReading() {
   mode.value = "app_draw";
   appSpreadId.value = setupSpreadId.value;
+  ritualState.value = createInitialRitualState("app_draw");
+  lifecyclePhase.value = settingsStore.settings.ritualPromptsEnabled ? "question" : "shuffle";
+  ritualQuestion.value = "";
+  ritualQuestionSkipped.value = false;
+  ritualPickOrder.value = [];
+  ritualCandidateCards.value = [];
+  appCards.value = [];
+  revealedCount.value = 0;
+  appReading.value = undefined;
+  appNeedsUpdate.value = false;
+  appDialogue.value = [];
+  appQuestion.value = "";
+  error.value = "";
+  readingPopupOpen.value = false;
 
-  const hasCards = appCards.value.some((card) => Boolean(card));
-  if (!hasCards || appCards.value.length !== appSpread.value.slots.length) {
-    initializeAppDrawDeck();
+  if (lifecyclePhase.value === "shuffle") {
+    emitAmbienceCue("shuffle-start");
   }
 
   isStarted.value = true;
@@ -656,6 +886,11 @@ function onSetupImageUpload(event: Event) {
   setupSpreadId.value = setupSpreadId.value || "three-card";
   uploadSpreadId.value = setupSpreadId.value;
   mode.value = "upload";
+  ritualState.value = createInitialRitualState("upload");
+  lifecyclePhase.value = settingsStore.settings.ritualPromptsEnabled ? "question" : "followup";
+  ritualQuestion.value = "";
+  ritualQuestionSkipped.value = false;
+  ritualPickOrder.value = [];
   isStarted.value = true;
   setupOpen.value = false;
   uploadCards.value = normalizeCards(uploadSpread.value, []);
@@ -663,7 +898,7 @@ function onSetupImageUpload(event: Event) {
   uploadQuestion.value = "";
   readingPopupOpen.value = false;
 
-  applyUploadFile(file);
+  applyUploadFile(file, !settingsStore.settings.ritualPromptsEnabled);
   target.value = "";
 }
 
@@ -692,6 +927,12 @@ function resetReadingModule() {
   appDialogue.value = [];
   appQuestion.value = "";
   revealedCount.value = 0;
+  ritualState.value = createInitialRitualState(activeMode);
+  lifecyclePhase.value = "setup";
+  ritualQuestion.value = "";
+  ritualQuestionSkipped.value = false;
+  ritualPickOrder.value = [];
+  ritualCandidateCards.value = [];
 
   error.value = "";
   readingPopupOpen.value = false;
@@ -699,7 +940,7 @@ function resetReadingModule() {
   sessionStore.resetReading();
 }
 
-function applyUploadFile(file: File) {
+function applyUploadFile(file: File, detectImmediately = true) {
   uploadMimeType.value = file.type || "image/png";
   uploadFileName.value = file.name;
 
@@ -710,7 +951,9 @@ function applyUploadFile(file: File) {
     uploadNeedsUpdate.value = false;
     spreadConfidence.value = null;
     error.value = "";
-    void detectSpread();
+    if (detectImmediately) {
+      void detectSpread();
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -957,6 +1200,7 @@ async function openOrGenerateUploadFullReading(forceRefresh = false) {
   isReading.value = true;
   pendingAction.value = "upload-full";
   error.value = "";
+  lifecyclePhase.value = "full";
 
   try {
     const adapter = getAdapter();
@@ -1002,6 +1246,7 @@ async function askUploadFollowUp() {
   uploadQuestion.value = "";
   isReading.value = true;
   pendingAction.value = "upload-followup";
+  lifecyclePhase.value = "followup";
 
   try {
     const adapter = getAdapter();
@@ -1029,6 +1274,7 @@ async function revealCard(index: number) {
     error.value = "Card slot is empty. Use the add-card action first.";
     return;
   }
+  emitAmbienceCue("card-reveal");
   loadingCardPreview.value = card;
 
   appCards.value = appCards.value.map((entry, cardIndex) => {
@@ -1096,6 +1342,7 @@ async function askAppFollowUp() {
   appQuestion.value = "";
   isReading.value = true;
   pendingAction.value = "followup";
+  lifecyclePhase.value = "followup";
 
   try {
     const adapter = getAdapter();
@@ -1133,6 +1380,7 @@ async function openOrGenerateAppFullReading(forceRefresh = false) {
 
   isReading.value = true;
   pendingAction.value = "full";
+  lifecyclePhase.value = "full";
 
   try {
     const adapter = getAdapter();
@@ -1163,6 +1411,7 @@ async function downloadCurrentPdf() {
       reading,
       spread: uploadSpread.value,
       cards: uploadCards.value as DrawnCard[],
+      deckId: settingsStore.settings.deckId,
       sourceImageDataUrl: uploadImageDataUrl.value,
       disclaimer: "Reflective use only. This reading is not medical, legal, or financial professional advice."
     });
@@ -1174,6 +1423,7 @@ async function downloadCurrentPdf() {
     reading,
     spread: appSpread.value,
     cards: appCards.value as DrawnCard[],
+    deckId: settingsStore.settings.deckId,
     disclaimer: "Reflective use only. This reading is not medical, legal, or financial professional advice."
   });
 }

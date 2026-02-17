@@ -5,6 +5,7 @@ import type { CardRef } from "@/domain/types";
 const parsed = cardsSchema.parse(rawCards);
 
 export const cards: CardRef[] = parsed;
+export const cardIds: string[] = cards.map((card) => card.id);
 
 const byId = new Map(cards.map((card) => [card.id, card]));
 
@@ -18,4 +19,8 @@ export function getCardById(cardId: string): CardRef {
 
 export function getCardName(cardId: string): string {
   return getCardById(cardId).name;
+}
+
+export function getAllCardIds(): string[] {
+  return [...cardIds];
 }

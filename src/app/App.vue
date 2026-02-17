@@ -22,6 +22,13 @@
     </header>
 
     <main class="app-main">
+      <AmbientScene
+        v-if="featureFlags.ambienceScene"
+        :spread-name="currentSpreadName"
+        :revealed-count="currentRevealedCount"
+        :total-slots="currentSpreadSlotCount"
+        :show-crystal-prompt="showCrystalPrompt"
+      />
       <RouterView />
     </main>
 
@@ -63,8 +70,11 @@
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { publicAssetUrl } from "@/app/publicAsset";
+import { featureFlags } from "@/app/featureFlags";
 import { useSessionStore } from "@/app/sessionStore";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
+import { getSpreadById } from "@/domain/spreads";
+import AmbientScene from "@/modules/ambience/components/AmbientScene.vue";
 
 type NavName = "home" | "training" | "reading" | "settings";
 
@@ -81,6 +91,33 @@ const hasActiveSession = computed(
 );
 const routeClass = computed(() => `route-${String(route.name ?? "home")}`);
 const brandSymbolUrl = publicAssetUrl("symbols/sigil-heptagram.svg");
+const currentSpread = computed(() => {
+  const readingDraft = sessionStore.readingDraft;
+  if (!readingDraft?.spreadId) {
+    return undefined;
+  }
+
+  try {
+    return getSpreadById(readingDraft.spreadId);
+  } catch {
+    return undefined;
+  }
+});
+const currentSpreadName = computed(() => currentSpread.value?.name ?? "");
+const currentSpreadSlotCount = computed(() => currentSpread.value?.slots.length ?? 0);
+const currentRevealedCount = computed(() => {
+  const readingDraft = sessionStore.readingDraft;
+  if (!readingDraft) {
+    return 0;
+  }
+  if (typeof readingDraft.revealedCount === "number") {
+    return readingDraft.revealedCount;
+  }
+  return readingDraft.cards.filter((card) => Boolean(card?.faceUp)).length;
+});
+const showCrystalPrompt = computed(
+  () => route.name === "reading" && sessionStore.readingDraft?.ritualPhase === "question"
+);
 
 function leavePromptMessage(): string {
   return "Leave the current session? This will reset the current spread/exercise state.";
@@ -119,9 +156,9 @@ function onBeforeUnload(event: BeforeUnloadEvent) {
 }
 
 watch(
-  () => settingsStore.settings.uiSkin,
-  (skin) => {
-    document.body.dataset.skin = skin;
+  () => [settingsStore.settings.paletteId, settingsStore.settings.uiSkin],
+  ([paletteId, legacySkin]) => {
+    document.body.dataset.skin = paletteId || legacySkin;
   },
   { immediate: true }
 );

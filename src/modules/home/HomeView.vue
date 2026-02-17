@@ -32,25 +32,28 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
-import { publicAssetUrl } from "@/app/publicAsset";
+import { useSettingsStore } from "@/modules/settings/settingsStore";
+import { resolveDeckCardImage } from "@/modules/decks/deckResolver";
+
+const settingsStore = useSettingsStore();
 
 const floatingSets: string[][] = [
   [
-    "major-00-the-fool.png",
-    "major-01-the-magician.png",
-    "major-17-the-star.png"
+    "major-00-the-fool",
+    "major-01-the-magician",
+    "major-17-the-star"
   ],
   [
-    "major-18-the-moon.png",
-    "major-19-the-sun.png",
-    "major-15-the-devil.png"
+    "major-18-the-moon",
+    "major-19-the-sun",
+    "major-15-the-devil"
   ]
 ];
 
 const selectedFloatingSet = floatingSets[Math.floor(Math.random() * floatingSets.length)];
 
-function cardImageUrl(cardFile: string): string {
-  return publicAssetUrl(`cards/${cardFile}`);
+function cardImageUrl(cardId: string): string {
+  return resolveDeckCardImage(settingsStore.settings.deckId, cardId);
 }
 </script>
 

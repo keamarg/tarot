@@ -13,3 +13,5 @@ worker/.dev.vars
 src/**/*.vue.js
 src/**/*.vue.d.ts
 *.tsbuildinfo
+test-results
+playwright-report

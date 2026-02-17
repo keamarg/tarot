@@ -4,6 +4,7 @@ export declare function exportReadingPdf(params: {
     reading: ReadingOutput;
     spread: SpreadDefinition;
     cards: DrawnCard[];
+    deckId?: string;
     sourceImageDataUrl?: string;
     disclaimer?: string;
 }): Promise<void>;

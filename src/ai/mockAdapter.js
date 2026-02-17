@@ -21,7 +21,10 @@ export class MockAdapter {
     }
     async runReading(input) {
         const context = input.context
-            ? ` [${input.context.mode} | ${input.context.phase} | ${input.context.revealedCount}/${input.context.totalSlots}]`
+            ? ` [${input.context.mode} | ${input.context.phase} | ${input.context.revealedCount}/${input.context.totalSlots}${input.context.ritualPhase ? ` | ritual:${input.context.ritualPhase}` : ""}${input.context.deckId ? ` | deck:${input.context.deckId}` : ""}]`
+            : "";
+        const questionContext = input.context?.questionText?.trim()
+            ? ` Question focus: ${input.context.questionText.trim()}`
             : "";
         return {
             title: `${input.spread.name} Reading (Mock)`,
@@ -30,7 +33,8 @@ export class MockAdapter {
                 slotLabel: entry.slot.label,
                 cardName: entry.card.name,
                 interpretation: `Mock interpretation for ${entry.card.name}${entry.reversed ? " (reversed)" : ""} in ${entry.slot.label}.` +
-                    context
+                    context +
+                    questionContext
             })),
             synthesis: "Add an Anthropic API key in Settings for full expert reading generation. This mock keeps the UI flow testable."
         };

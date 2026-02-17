@@ -49,3 +49,39 @@ export const exerciseSchema = z.object({
 export const cardsSchema = z.array(cardSchema).length(78);
 export const spreadsSchema = z.array(spreadSchema);
 export const exercisesSchema = z.array(exerciseSchema);
+export const deckSchema = z.object({
+    id: z.string(),
+    label: z.string(),
+    description: z.string(),
+    sourceName: z.string(),
+    sourceUrl: z.string(),
+    cardsBasePath: z.string(),
+    cardBackPath: z.string(),
+    cardOverrides: z.record(z.string(), z.string()).optional(),
+    frontFilter: z.string().optional(),
+    shadowTint: z.string().optional(),
+    enabled: z.boolean().optional(),
+    ambienceProfile: z
+        .object({
+        musicMode: z.enum(["warm", "cool", "neutral"]),
+        shuffleSfxSeed: z.number().int().min(0),
+        revealSfxSeed: z.number().int().min(0)
+    })
+        .optional()
+});
+export const decksSchema = z.array(deckSchema).min(1);
+export const paletteSchema = z.object({
+    id: z.string(),
+    label: z.string(),
+    description: z.string()
+});
+export const palettesSchema = z.array(paletteSchema).min(1);
+export const ambientSceneSchema = z.object({
+    id: z.string(),
+    label: z.string(),
+    description: z.string(),
+    candleCount: z.number().int().min(1),
+    smokeDensity: z.number().min(0).max(1),
+    crystalPrompt: z.boolean()
+});
+export const ambientScenesSchema = z.array(ambientSceneSchema).min(1);

@@ -2,7 +2,7 @@
   <section class="grid settings-grid">
     <article class="card">
       <h2>Settings</h2>
-      <p class="small">Session-scoped configuration for model, visuals, and draw behavior.</p>
+      <p class="small">Session-scoped configuration for AI, ritual flow, decks, ambience, and performance.</p>
 
       <div class="form-grid">
         <label>
@@ -23,7 +23,7 @@
           </select>
         </label>
 
-        <div class="model-tools">
+        <div class="model-tools full-width">
           <button
             type="button"
             :disabled="isLoadingModels || (!usesServerProxy && !settings.apiKeySession.trim())"
@@ -35,7 +35,7 @@
         </div>
 
         <label class="full-width">
-          API Key (session only, provider-specific; optional when server proxy is configured)
+          API Key (session only)
           <input
             :value="settings.apiKeySession"
             type="password"
@@ -44,33 +44,41 @@
             @input="updateKey"
           />
         </label>
-        <p v-if="usesServerProxy" class="small full-width">
-          Server proxy mode detected: provider secrets can be kept server-side.
-        </p>
 
         <label>
-          UI Skin
-          <select :value="settings.uiSkin" @change="updateSkin">
-            <option value="arcana">Arcana</option>
-            <option value="classic">Classic</option>
-            <option value="prism">Prism</option>
+          Deck
+          <select :value="settings.deckId" @change="updateDeck">
+            <option v-for="deck in availableDecks" :key="deck.id" :value="deck.id">
+              {{ deck.label }}
+            </option>
           </select>
         </label>
 
         <label>
-          Card back
-          <select :value="settings.cardBackId" @change="updateCardBack">
-            <option value="original">Original</option>
-            <option value="centennial">Centennial</option>
-            <option value="prism">Prism (bright)</option>
-            <option value="eros">Eros (symbolic)</option>
-            <option v-if="settings.customCardBackDataUrl" value="custom">Custom upload</option>
+          Palette
+          <select :value="settings.paletteId" @change="updatePalette">
+            <option v-for="palette in palettes" :key="palette.id" :value="palette.id">
+              {{ palette.label }}
+            </option>
           </select>
         </label>
 
-        <label class="full-width">
-          Optional custom card back upload
-          <input accept="image/*" type="file" @change="onCustomBackUpload" />
+        <label>
+          Scene
+          <select :value="settings.sceneId" @change="updateScene">
+            <option v-for="scene in ambientScenes" :key="scene.id" :value="scene.id">
+              {{ scene.label }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Animation intensity
+          <select :value="settings.animationIntensity" @change="updateAnimationIntensity">
+            <option value="low">Low</option>
+            <option value="standard">Standard</option>
+            <option value="high">High</option>
+          </select>
         </label>
 
         <fieldset class="full-width">
@@ -83,35 +91,73 @@
 
         <fieldset class="full-width">
           <legend>Reversal mode</legend>
-          <label class="inline"><input :checked="settings.reversalMode === 'none'" type="radio" name="reversal" @change="setReversal('none')" /> 0% (upright only)</label>
-          <label class="inline"><input :checked="settings.reversalMode === 'balanced'" type="radio" name="reversal" @change="setReversal('balanced')" /> 50% (balanced)</label>
+          <label class="inline"><input :checked="settings.reversalMode === 'none'" type="radio" name="reversal" @change="setReversal('none')" /> Upright only</label>
+          <label class="inline"><input :checked="settings.reversalMode === 'balanced'" type="radio" name="reversal" @change="setReversal('balanced')" /> Balanced 50/50</label>
+        </fieldset>
+
+        <fieldset class="full-width">
+          <legend>Audio</legend>
+          <label class="inline checkbox-inline"><input :checked="settings.musicEnabled" type="checkbox" @change="toggleMusic" /> Music</label>
+          <label class="inline checkbox-inline"><input :checked="settings.sfxEnabled" type="checkbox" @change="toggleSfx" /> SFX</label>
+          <label class="inline checkbox-inline"><input :checked="settings.voiceEnabled" type="checkbox" @change="toggleVoice" /> Whisper voice</label>
+
+          <label class="slider-row">
+            Master
+            <input :value="settings.masterVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('masterVolume', $event)" />
+          </label>
+          <label class="slider-row">
+            Music
+            <input :value="settings.musicVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('musicVolume', $event)" />
+          </label>
+          <label class="slider-row">
+            SFX
+            <input :value="settings.sfxVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('sfxVolume', $event)" />
+          </label>
+          <label class="slider-row">
+            Voice
+            <input :value="settings.voiceVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('voiceVolume', $event)" />
+          </label>
+        </fieldset>
+
+        <fieldset class="full-width">
+          <legend>Ritual</legend>
+          <label class="inline checkbox-inline"><input :checked="settings.ritualPromptsEnabled" type="checkbox" @change="toggleRitualPrompts" /> Show question ritual</label>
+          <label class="inline checkbox-inline"><input :checked="settings.ritualSilenceMode" type="checkbox" @change="toggleRitualSilence" /> Ritual silence during question</label>
+          <label class="inline checkbox-inline"><input :checked="settings.reducedEffects" type="checkbox" @change="toggleReducedEffects" /> Reduce visual effects</label>
         </fieldset>
 
         <label class="full-width qa-toggle">
           <span>QA mode</span>
           <span class="inline">
             <input :checked="settings.qaUseMock" type="checkbox" @change="updateQaToggle" />
-            Use premade answers (no API calls)
+            Use mock responses (no API calls)
           </span>
         </label>
       </div>
     </article>
 
     <article class="card settings-side">
-      <h3>Card Back Preview</h3>
+      <h3>Deck Preview</h3>
       <img v-if="backImageUrl" class="back-preview" :src="backImageUrl" alt="Selected tarot card back" />
-      <div v-else class="back-fallback">No back image loaded</div>
+      <p class="small">{{ selectedDeck?.description }}</p>
+
+      <h3>Scene Notes</h3>
+      <p class="small">{{ selectedScene?.description }}</p>
+
+      <h3>Palette Notes</h3>
+      <p class="small">{{ selectedPalette?.description }}</p>
     </article>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { publicAssetUrl } from "@/app/publicAsset";
 import { fallbackModelsFor, fetchModelsForProvider, type ModelCatalogItem } from "@/ai/modelCatalog";
-import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { hasServerProxy } from "@/ai/apiBase";
-import type { ProviderId, QualityPreset, ReversalMode, UISkin } from "@/domain/types";
+import { useSettingsStore } from "@/modules/settings/settingsStore";
+import { ambientScenes, availableDecks, getAmbientSceneById, getDeckById, getPaletteById, palettes } from "@/modules/decks/deckCatalog";
+import { resolveDeckBackImage } from "@/modules/decks/deckResolver";
+import type { AnimationIntensity, ProviderId, QualityPreset, ReversalMode, UISkin } from "@/domain/types";
 
 const settingsStore = useSettingsStore();
 const settings = computed(() => settingsStore.settings);
@@ -119,6 +165,10 @@ const providerModels = ref<ModelCatalogItem[]>(fallbackModelsFor(settings.value.
 const isLoadingModels = ref(false);
 const modelLoadError = ref("");
 const usesServerProxy = hasServerProxy();
+
+const selectedDeck = computed(() => getDeckById(settings.value.deckId));
+const selectedPalette = computed(() => getPaletteById(settings.value.paletteId));
+const selectedScene = computed(() => getAmbientSceneById(settings.value.sceneId));
 
 const apiKeyPlaceholder = computed(() => {
   if (usesServerProxy && !settings.value.apiKeySession.trim()) {
@@ -133,37 +183,20 @@ const apiKeyPlaceholder = computed(() => {
   return "sk-ant-...";
 });
 
-const backImageUrl = computed(() => {
-  if (settings.value.cardBackId === "custom" && settings.value.customCardBackDataUrl) {
-    return settings.value.customCardBackDataUrl;
-  }
-  if (settings.value.cardBackId === "prism") {
-    return publicAssetUrl("backs/prism.svg");
-  }
-  if (settings.value.cardBackId === "eros") {
-    return publicAssetUrl("backs/eros.svg");
-  }
-  if (settings.value.cardBackId === "centennial") {
-    return publicAssetUrl("backs/centennial.webp");
-  }
-  return publicAssetUrl("backs/original.webp");
-});
+const backImageUrl = computed(() => resolveDeckBackImage(settings.value.deckId));
 
 const qualityHint = computed(() => {
   if (settings.value.quality === "low") {
-    return "Low: faster and concise responses with lower output token budget.";
+    return "Low: faster and concise responses.";
   }
   if (settings.value.quality === "high") {
-    return "High: slower but more detailed responses with larger token budget and richer elaboration.";
+    return "High: slower and richer responses.";
   }
-  return "Standard: balanced speed, detail, and token budget.";
+  return "Standard: balanced speed and detail.";
 });
 
 function updateModel(event: Event) {
   const target = event.target as HTMLSelectElement;
-  if (target.value === settingsStore.settings.model) {
-    return;
-  }
   settingsStore.updateSettings({ model: target.value });
 }
 
@@ -185,9 +218,24 @@ function updateKey(event: Event) {
   settingsStore.updateSettings({ apiKeySession: target.value });
 }
 
-function updateSkin(event: Event) {
+function updateDeck(event: Event) {
   const target = event.target as HTMLSelectElement;
-  settingsStore.updateSettings({ uiSkin: target.value as UISkin });
+  settingsStore.updateSettings({ deckId: target.value, cardBackId: "deck" });
+}
+
+function updatePalette(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  settingsStore.updateSettings({ paletteId: target.value, uiSkin: target.value as UISkin });
+}
+
+function updateScene(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  settingsStore.updateSettings({ sceneId: target.value });
+}
+
+function updateAnimationIntensity(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  settingsStore.updateSettings({ animationIntensity: target.value as AnimationIntensity });
 }
 
 function setQuality(quality: QualityPreset) {
@@ -198,9 +246,40 @@ function setReversal(reversalMode: ReversalMode) {
   settingsStore.updateSettings({ reversalMode });
 }
 
-function updateCardBack(event: Event) {
-  const target = event.target as HTMLSelectElement;
-  settingsStore.updateSettings({ cardBackId: target.value });
+function toggleMusic(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ musicEnabled: target.checked });
+}
+
+function toggleSfx(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ sfxEnabled: target.checked });
+}
+
+function toggleVoice(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ voiceEnabled: target.checked });
+}
+
+function toggleRitualPrompts(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ ritualPromptsEnabled: target.checked });
+}
+
+function toggleRitualSilence(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ ritualSilenceMode: target.checked });
+}
+
+function toggleReducedEffects(event: Event) {
+  const target = event.target as HTMLInputElement;
+  settingsStore.updateSettings({ reducedEffects: target.checked });
+}
+
+function updateRange(key: "masterVolume" | "musicVolume" | "sfxVolume" | "voiceVolume", event: Event) {
+  const target = event.target as HTMLInputElement;
+  const parsed = Number(target.value);
+  settingsStore.updateSettings({ [key]: Number.isFinite(parsed) ? parsed : 0 } as Partial<typeof settings.value>);
 }
 
 function updateQaToggle(event: Event) {
@@ -212,6 +291,7 @@ async function refreshModels() {
   if (isLoadingModels.value) {
     return;
   }
+
   const provider = settings.value.provider;
   const apiKey = settings.value.apiKeySession.trim();
   if (!apiKey && !usesServerProxy) {
@@ -236,20 +316,6 @@ async function refreshModels() {
   }
 }
 
-function onCustomBackUpload(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) {
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => {
-    const value = String(reader.result ?? "");
-    settingsStore.updateSettings({ cardBackId: "custom", customCardBackDataUrl: value });
-  };
-  reader.readAsDataURL(file);
-}
-
 watch(
   () => settings.value.provider,
   (provider) => {
@@ -257,9 +323,6 @@ watch(
     providerModels.value = fallback;
     if (fallback.length && !fallback.some((model) => model.id === settings.value.model)) {
       settingsStore.updateSettings({ model: fallback[0].id });
-    }
-    if (!settings.value.apiKeySession.trim() && !usesServerProxy) {
-      modelLoadError.value = "";
     }
   },
   { immediate: true }
@@ -285,7 +348,7 @@ label {
 
 input,
 select {
-  width: min(360px, 100%);
+  width: min(420px, 100%);
 }
 
 fieldset {
@@ -306,6 +369,15 @@ legend {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.checkbox-inline {
+  min-width: 180px;
+}
+
+.slider-row {
+  width: 100%;
+  align-items: center;
 }
 
 .quality-note {
@@ -333,6 +405,10 @@ legend {
   gap: 0.65rem;
 }
 
+.settings-side h3 {
+  margin: 0;
+}
+
 .back-preview {
   width: min(300px, 100%);
   aspect-ratio: 3 / 5;
@@ -346,14 +422,6 @@ legend {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.48rem 0.55rem;
-}
-
-.back-fallback {
-  border: 1px dashed var(--border);
-  border-radius: 10px;
-  min-height: 180px;
-  display: grid;
-  place-items: center;
 }
 
 @media (max-width: 980px) {

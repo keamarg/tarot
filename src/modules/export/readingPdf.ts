@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { publicAssetUrl } from "@/app/publicAsset";
 import { getCardById } from "@/domain/cards";
+import { resolveDeckCardImage } from "@/modules/decks/deckResolver";
 import type { DrawnCard, ReadingOutput, SpreadDefinition } from "@/domain/types";
 
 async function loadImageDataUrl(url: string): Promise<string> {
@@ -17,7 +17,7 @@ async function loadImageDataUrl(url: string): Promise<string> {
   });
 }
 
-async function createSpreadPreviewDataUrl(spread: SpreadDefinition, cards: DrawnCard[]): Promise<string> {
+async function createSpreadPreviewDataUrl(spread: SpreadDefinition, cards: DrawnCard[], deckId: string): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
   canvas.height = 760;
@@ -59,7 +59,7 @@ async function createSpreadPreviewDataUrl(spread: SpreadDefinition, cards: Drawn
 
     if (draw) {
       const card = getCardById(draw.cardId);
-      const imgPath = publicAssetUrl(`cards/${card.image}`);
+      const imgPath = resolveDeckCardImage(deckId, card.id);
       try {
         const dataUrl = await loadImageDataUrl(imgPath);
         const image = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -107,10 +107,11 @@ export async function exportReadingPdf(params: {
   reading: ReadingOutput;
   spread: SpreadDefinition;
   cards: DrawnCard[];
+  deckId?: string;
   sourceImageDataUrl?: string;
   disclaimer?: string;
 }) {
-  const { fileName, reading, spread, cards, sourceImageDataUrl, disclaimer } = params;
+  const { fileName, reading, spread, cards, deckId = "original-rws", sourceImageDataUrl, disclaimer } = params;
 
   const doc = await PDFDocument.create();
   const page = doc.addPage([842, 1191]);
@@ -133,7 +134,7 @@ export async function exportReadingPdf(params: {
     color: rgb(0.2, 0.25, 0.28)
   });
 
-  const previewDataUrl = sourceImageDataUrl ?? (await createSpreadPreviewDataUrl(spread, cards));
+  const previewDataUrl = sourceImageDataUrl ?? (await createSpreadPreviewDataUrl(spread, cards, deckId));
   const previewBase64 = base64FromDataUrl(previewDataUrl);
 
   let image;

@@ -3,8 +3,64 @@ export type QualityPreset = "low" | "standard" | "high";
 export type ReversalMode = "none" | "balanced";
 export type TrainingRole = "coach" | "client" | "co_learner";
 export type DrawMode = "app" | "physical";
-export type UISkin = "arcana" | "classic" | "prism";
+export type UISkin = "arcana" | "classic" | "prism" | "ember" | "verdigris";
 export type ExerciseStepAction = "draw" | "manual";
+export type ReadingLifecyclePhase = "setup" | "question" | "shuffle" | "pick" | "reveal" | "followup" | "full";
+export type AnimationIntensity = "low" | "standard" | "high";
+export interface DeckCardMap {
+    [cardId: string]: string;
+}
+export interface DeckDefinition {
+    id: string;
+    label: string;
+    description: string;
+    sourceName: string;
+    sourceUrl: string;
+    cardsBasePath: string;
+    cardBackPath: string;
+    cardOverrides?: DeckCardMap;
+    frontFilter?: string;
+    shadowTint?: string;
+    enabled?: boolean;
+    ambienceProfile?: {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    };
+}
+export interface PaletteDefinition {
+    id: UISkin | string;
+    label: string;
+    description: string;
+}
+export interface AmbientScene {
+    id: string;
+    label: string;
+    description: string;
+    candleCount: number;
+    smokeDensity: number;
+    crystalPrompt: boolean;
+}
+export interface AudioSettings {
+    musicEnabled: boolean;
+    sfxEnabled: boolean;
+    masterVolume: number;
+    musicVolume: number;
+    sfxVolume: number;
+}
+export interface VoiceSettings {
+    voiceEnabled: boolean;
+    voiceVolume: number;
+}
+export interface RitualState {
+    mode: "upload" | "app_draw";
+    phase: ReadingLifecyclePhase;
+    questionText: string;
+    questionSkipped: boolean;
+    pickOrder: number[];
+    shuffleCompleted: boolean;
+    deckActivated: boolean;
+}
 export interface AppSettings {
     provider: ProviderId;
     model: string;
@@ -14,6 +70,20 @@ export interface AppSettings {
     customCardBackDataUrl?: string;
     reversalMode: ReversalMode;
     uiSkin: UISkin;
+    paletteId: string;
+    deckId: string;
+    sceneId: string;
+    musicEnabled: boolean;
+    sfxEnabled: boolean;
+    voiceEnabled: boolean;
+    masterVolume: number;
+    musicVolume: number;
+    sfxVolume: number;
+    voiceVolume: number;
+    animationIntensity: AnimationIntensity;
+    ritualPromptsEnabled: boolean;
+    ritualSilenceMode: boolean;
+    reducedEffects: boolean;
     qaUseMock: boolean;
 }
 export interface CardRef {
@@ -128,6 +198,10 @@ export interface ReadingInput {
         revealedCount: number;
         totalSlots: number;
         currentSlotId?: string;
+        questionText?: string;
+        deckId?: string;
+        ritualPhase?: ReadingLifecyclePhase;
+        isUploadMode?: boolean;
     };
 }
 export interface LLMAdapter {
@@ -150,6 +224,12 @@ export interface ReadingDraft {
     revealedCount?: number;
     nextRevealIndex?: number;
     dialogue?: DialogueEntry[];
+    ritualPhase?: ReadingLifecyclePhase;
+    questionText?: string;
+    questionSkipped?: boolean;
+    pickOrder?: number[];
+    selectedDeckId?: string;
+    lifecycleVersion?: number;
 }
 export interface TrainingDraft {
     exerciseId: string;

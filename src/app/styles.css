@@ -79,6 +79,50 @@ body[data-skin="prism"] {
   --site-pattern: url("/symbols/hermetic-tile.svg");
 }
 
+body[data-skin="ember"] {
+  --bg-0: #1f1214;
+  --bg-1: #2d191c;
+  --bg-2: #472629;
+  --surface: rgba(38, 21, 24, 0.86);
+  --surface-soft: rgba(255, 225, 205, 0.09);
+  --border: rgba(245, 184, 134, 0.4);
+  --text: #fdeee2;
+  --muted: #f4c7a7;
+  --accent: #ffb06a;
+  --accent-2: #ff8368;
+  --danger: #ff7f8e;
+  --ok: #9fd8a3;
+  --shadow: 0 20px 46px rgba(22, 7, 8, 0.5);
+  --background:
+    radial-gradient(circle at 16% 12%, rgba(255, 176, 106, 0.28), transparent 41%),
+    radial-gradient(circle at 80% 18%, rgba(255, 131, 104, 0.3), transparent 38%),
+    linear-gradient(152deg, var(--bg-0), var(--bg-1) 48%, var(--bg-2));
+  --panel-gradient: linear-gradient(126deg, rgba(52, 26, 29, 0.92), rgba(43, 24, 32, 0.9));
+  --site-pattern: url("/symbols/hermetic-grid.svg");
+}
+
+body[data-skin="verdigris"] {
+  --bg-0: #0f1f25;
+  --bg-1: #162f35;
+  --bg-2: #1f4c52;
+  --surface: rgba(18, 36, 41, 0.84);
+  --surface-soft: rgba(205, 236, 230, 0.1);
+  --border: rgba(138, 196, 179, 0.4);
+  --text: #e7f5f0;
+  --muted: #b2d8cf;
+  --accent: #9adbb0;
+  --accent-2: #7cc4d9;
+  --danger: #ef9da8;
+  --ok: #8ed8a0;
+  --shadow: 0 20px 44px rgba(6, 16, 22, 0.48);
+  --background:
+    radial-gradient(circle at 14% 14%, rgba(154, 219, 176, 0.28), transparent 38%),
+    radial-gradient(circle at 84% 16%, rgba(124, 196, 217, 0.28), transparent 38%),
+    linear-gradient(158deg, var(--bg-0), var(--bg-1) 48%, var(--bg-2));
+  --panel-gradient: linear-gradient(126deg, rgba(22, 45, 47, 0.92), rgba(21, 53, 60, 0.88));
+  --site-pattern: url("/symbols/tree-of-life.svg");
+}
+
 body[data-route="home"] {
   --route-symbol-a: url("/symbols/unicursal-hexagram.svg");
   --route-symbol-b: url("/symbols/tree-of-life-proper.svg");
@@ -284,6 +328,11 @@ body::after {
   box-shadow: var(--shadow);
   padding: 0.72rem;
   backdrop-filter: blur(2px);
+}
+
+.app-main > *:not(.ambient-scene) {
+  position: relative;
+  z-index: 1;
 }
 
 .app-main::before {

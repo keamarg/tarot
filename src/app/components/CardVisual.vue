@@ -13,7 +13,7 @@
       'overlay-meta': overlayMeta,
       'fit-debug': fitDebug
     }"
-    :style="expandedStyle"
+    :style="deckVisualStyle"
     @click="onRootClick"
   >
     <button
@@ -106,8 +106,13 @@
 <script setup lang="ts">
 import { Pencil, Trash2 } from "lucide-vue-next";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type CSSProperties } from "vue";
-import { publicAssetUrl } from "@/app/publicAsset";
 import { getCardById } from "@/domain/cards";
+import {
+  resolveDeckBackImage,
+  resolveDeckCardImage,
+  resolveDeckFrontFilter,
+  resolveDeckShadowTint
+} from "@/modules/decks/deckResolver";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 
 const props = defineProps<{
@@ -203,6 +208,11 @@ const expandedStyle = computed<Record<string, string>>(() => ({
   "--expand-scale": expandScale.value,
   "--expand-inverse": expandInverse.value
 }));
+const deckVisualStyle = computed<Record<string, string>>(() => ({
+  ...expandedStyle.value,
+  "--deck-front-filter": resolveDeckFrontFilter(settingsStore.settings.deckId),
+  "--deck-shadow-tint": resolveDeckShadowTint(settingsStore.settings.deckId)
+}));
 
 const card = computed(() => {
   try {
@@ -216,23 +226,14 @@ const cardImageUrl = computed(() => {
   if (!card.value) {
     return "";
   }
-  return publicAssetUrl(`cards/${card.value.image}`);
+  return resolveDeckCardImage(settingsStore.settings.deckId, card.value.id);
 });
 
 const backImageUrl = computed(() => {
   if (settingsStore.settings.cardBackId === "custom" && settingsStore.settings.customCardBackDataUrl) {
     return settingsStore.settings.customCardBackDataUrl;
   }
-  if (settingsStore.settings.cardBackId === "prism") {
-    return publicAssetUrl("backs/prism.svg");
-  }
-  if (settingsStore.settings.cardBackId === "eros") {
-    return publicAssetUrl("backs/eros.svg");
-  }
-  if (settingsStore.settings.cardBackId === "centennial") {
-    return publicAssetUrl("backs/centennial.webp");
-  }
-  return publicAssetUrl("backs/original.webp");
+  return resolveDeckBackImage(settingsStore.settings.deckId);
 });
 
 const imageUrl = computed(() => ((props.faceUp ?? true) ? cardImageUrl.value : backImageUrl.value));
@@ -242,7 +243,8 @@ const imageStyle = computed<CSSProperties>(() => {
   const slotRotation = isExpanded.value && isQuarterTurn.value ? 0 : props.rotationDeg ?? 0;
   const orientationRotation = props.reversed ? 180 : 0;
   return {
-    transform: `rotate(${slotRotation + orientationRotation}deg)`
+    transform: `rotate(${slotRotation + orientationRotation}deg)`,
+    filter: (props.faceUp ?? true) ? resolveDeckFrontFilter(settingsStore.settings.deckId) : "none"
   };
 });
 
@@ -510,6 +512,7 @@ onBeforeUnmount(() => {
   padding: 0;
   background: color-mix(in srgb, var(--surface) 62%, transparent);
   transition: transform 220ms ease;
+  box-shadow: 0 10px 22px var(--deck-shadow-tint, rgba(4, 7, 16, 0.45));
 }
 
 .image-shell.quarter {

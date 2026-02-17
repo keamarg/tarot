@@ -11,14 +11,14 @@ export declare const cardSchema: z.ZodObject<{
     name: string;
     arcana: "major" | "minor";
     image: string;
-    suit?: "cups" | "pentacles" | "swords" | "wands" | undefined;
+    suit?: "wands" | "cups" | "swords" | "pentacles" | undefined;
     rank?: string | undefined;
 }, {
     id: string;
     name: string;
     arcana: "major" | "minor";
     image: string;
-    suit?: "cups" | "pentacles" | "swords" | "wands" | undefined;
+    suit?: "wands" | "cups" | "swords" | "pentacles" | undefined;
     rank?: string | undefined;
 }>;
 export declare const spreadSlotSchema: z.ZodObject<{
@@ -193,14 +193,14 @@ export declare const cardsSchema: z.ZodArray<z.ZodObject<{
     name: string;
     arcana: "major" | "minor";
     image: string;
-    suit?: "cups" | "pentacles" | "swords" | "wands" | undefined;
+    suit?: "wands" | "cups" | "swords" | "pentacles" | undefined;
     rank?: string | undefined;
 }, {
     id: string;
     name: string;
     arcana: "major" | "minor";
     image: string;
-    suit?: "cups" | "pentacles" | "swords" | "wands" | undefined;
+    suit?: "wands" | "cups" | "swords" | "pentacles" | undefined;
     rank?: string | undefined;
 }>, "many">;
 export declare const spreadsSchema: z.ZodArray<z.ZodObject<{
@@ -337,4 +337,194 @@ export declare const exercisesSchema: z.ZodArray<z.ZodObject<{
         action: "draw" | "manual";
         drawCount: number;
     }[] | undefined;
+}>, "many">;
+export declare const deckSchema: z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+    sourceName: z.ZodString;
+    sourceUrl: z.ZodString;
+    cardsBasePath: z.ZodString;
+    cardBackPath: z.ZodString;
+    cardOverrides: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
+    frontFilter: z.ZodOptional<z.ZodString>;
+    shadowTint: z.ZodOptional<z.ZodString>;
+    enabled: z.ZodOptional<z.ZodBoolean>;
+    ambienceProfile: z.ZodOptional<z.ZodObject<{
+        musicMode: z.ZodEnum<["warm", "cool", "neutral"]>;
+        shuffleSfxSeed: z.ZodNumber;
+        revealSfxSeed: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    }, {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    }>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+    sourceName: string;
+    sourceUrl: string;
+    cardsBasePath: string;
+    cardBackPath: string;
+    cardOverrides?: Record<string, string> | undefined;
+    frontFilter?: string | undefined;
+    shadowTint?: string | undefined;
+    enabled?: boolean | undefined;
+    ambienceProfile?: {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    } | undefined;
+}, {
+    id: string;
+    label: string;
+    description: string;
+    sourceName: string;
+    sourceUrl: string;
+    cardsBasePath: string;
+    cardBackPath: string;
+    cardOverrides?: Record<string, string> | undefined;
+    frontFilter?: string | undefined;
+    shadowTint?: string | undefined;
+    enabled?: boolean | undefined;
+    ambienceProfile?: {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    } | undefined;
+}>;
+export declare const decksSchema: z.ZodArray<z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+    sourceName: z.ZodString;
+    sourceUrl: z.ZodString;
+    cardsBasePath: z.ZodString;
+    cardBackPath: z.ZodString;
+    cardOverrides: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
+    frontFilter: z.ZodOptional<z.ZodString>;
+    shadowTint: z.ZodOptional<z.ZodString>;
+    enabled: z.ZodOptional<z.ZodBoolean>;
+    ambienceProfile: z.ZodOptional<z.ZodObject<{
+        musicMode: z.ZodEnum<["warm", "cool", "neutral"]>;
+        shuffleSfxSeed: z.ZodNumber;
+        revealSfxSeed: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    }, {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    }>>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+    sourceName: string;
+    sourceUrl: string;
+    cardsBasePath: string;
+    cardBackPath: string;
+    cardOverrides?: Record<string, string> | undefined;
+    frontFilter?: string | undefined;
+    shadowTint?: string | undefined;
+    enabled?: boolean | undefined;
+    ambienceProfile?: {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    } | undefined;
+}, {
+    id: string;
+    label: string;
+    description: string;
+    sourceName: string;
+    sourceUrl: string;
+    cardsBasePath: string;
+    cardBackPath: string;
+    cardOverrides?: Record<string, string> | undefined;
+    frontFilter?: string | undefined;
+    shadowTint?: string | undefined;
+    enabled?: boolean | undefined;
+    ambienceProfile?: {
+        musicMode: "warm" | "cool" | "neutral";
+        shuffleSfxSeed: number;
+        revealSfxSeed: number;
+    } | undefined;
+}>, "many">;
+export declare const paletteSchema: z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+}, {
+    id: string;
+    label: string;
+    description: string;
+}>;
+export declare const palettesSchema: z.ZodArray<z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+}, {
+    id: string;
+    label: string;
+    description: string;
+}>, "many">;
+export declare const ambientSceneSchema: z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+    candleCount: z.ZodNumber;
+    smokeDensity: z.ZodNumber;
+    crystalPrompt: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+    candleCount: number;
+    smokeDensity: number;
+    crystalPrompt: boolean;
+}, {
+    id: string;
+    label: string;
+    description: string;
+    candleCount: number;
+    smokeDensity: number;
+    crystalPrompt: boolean;
+}>;
+export declare const ambientScenesSchema: z.ZodArray<z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    description: z.ZodString;
+    candleCount: z.ZodNumber;
+    smokeDensity: z.ZodNumber;
+    crystalPrompt: z.ZodBoolean;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    label: string;
+    description: string;
+    candleCount: number;
+    smokeDensity: number;
+    crystalPrompt: boolean;
+}, {
+    id: string;
+    label: string;
+    description: string;
+    candleCount: number;
+    smokeDensity: number;
+    crystalPrompt: boolean;
 }>, "many">;

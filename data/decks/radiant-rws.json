@@ -1,0 +1,17 @@
+{
+  "id": "radiant-rws",
+  "label": "Radiant RWS",
+  "description": "A brighter, higher-contrast reading profile inspired by radiant color grading.",
+  "sourceName": "steve-p Rider-Waite scan set",
+  "sourceUrl": "https://steve-p.org/cards/RWSa.html",
+  "cardsBasePath": "cards",
+  "cardBackPath": "backs/centennial.webp",
+  "frontFilter": "saturate(1.26) contrast(1.1) brightness(1.06)",
+  "shadowTint": "rgba(255, 214, 124, 0.18)",
+  "enabled": true,
+  "ambienceProfile": {
+    "musicMode": "warm",
+    "shuffleSfxSeed": 300,
+    "revealSfxSeed": 440
+  }
+}

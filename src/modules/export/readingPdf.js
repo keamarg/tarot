@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { publicAssetUrl } from "@/app/publicAsset";
 import { getCardById } from "@/domain/cards";
+import { resolveDeckCardImage } from "@/modules/decks/deckResolver";
 async function loadImageDataUrl(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -14,7 +14,7 @@ async function loadImageDataUrl(url) {
         reader.readAsDataURL(blob);
     });
 }
-async function createSpreadPreviewDataUrl(spread, cards) {
+async function createSpreadPreviewDataUrl(spread, cards, deckId) {
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
     canvas.height = 760;
@@ -50,7 +50,7 @@ async function createSpreadPreviewDataUrl(spread, cards) {
         }
         if (draw) {
             const card = getCardById(draw.cardId);
-            const imgPath = publicAssetUrl(`cards/${card.image}`);
+            const imgPath = resolveDeckCardImage(deckId, card.id);
             try {
                 const dataUrl = await loadImageDataUrl(imgPath);
                 const image = await new Promise((resolve, reject) => {
@@ -88,7 +88,7 @@ function base64FromDataUrl(dataUrl) {
     return dataUrl.slice(comma + 1);
 }
 export async function exportReadingPdf(params) {
-    const { fileName, reading, spread, cards, sourceImageDataUrl, disclaimer } = params;
+    const { fileName, reading, spread, cards, deckId = "original-rws", sourceImageDataUrl, disclaimer } = params;
     const doc = await PDFDocument.create();
     const page = doc.addPage([842, 1191]);
     const font = await doc.embedFont(StandardFonts.TimesRoman);
@@ -107,7 +107,7 @@ export async function exportReadingPdf(params) {
         font,
         color: rgb(0.2, 0.25, 0.28)
     });
-    const previewDataUrl = sourceImageDataUrl ?? (await createSpreadPreviewDataUrl(spread, cards));
+    const previewDataUrl = sourceImageDataUrl ?? (await createSpreadPreviewDataUrl(spread, cards, deckId));
     const previewBase64 = base64FromDataUrl(previewDataUrl);
     let image;
     if (previewDataUrl.includes("image/jpeg")) {

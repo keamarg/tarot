@@ -1,18 +1,35 @@
 {
   "scope": "personal_private_use_only",
-  "deck_source": {
-    "name": "free-tarot-reading.net Rider Waite cards",
-    "url": "https://www.free-tarot-reading.net/rider-waite-cards"
-  },
+  "deck_sources": [
+    {
+      "id": "original-rws",
+      "name": "steve-p Rider Waite scan set",
+      "url": "https://steve-p.org/cards/RWSa.html"
+    },
+    {
+      "id": "radiant-rws",
+      "name": "Derived radiant grading from steve-p Rider Waite scan set",
+      "url": "https://steve-p.org/cards/RWSa.html"
+    },
+    {
+      "id": "eros-velvet",
+      "name": "Derived velvet grading from steve-p Rider Waite scan set + symbolic local back",
+      "url": "https://steve-p.org/cards/RWSa.html"
+    }
+  ],
   "backs": [
     {
-      "id": "original",
+      "id": "original-rws",
       "url": "https://www.usgamesinc.com/images/product/ORW99_7_1.webp"
     },
     {
-      "id": "centennial",
+      "id": "radiant-rws",
       "url": "https://www.usgamesinc.com/images/product/smith-waite-deck-back_2013.webp"
+    },
+    {
+      "id": "eros-velvet",
+      "url": "local:/public/backs/eros.svg"
     }
   ],
-  "note": "All visual assets should come from one consistent source for the 78-card deck."
+  "note": "Deck manifests in data/decks govern runtime deck resolution and asset validation."
 }

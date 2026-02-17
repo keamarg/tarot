@@ -1,0 +1,27 @@
+[
+  {
+    "id": "arcana",
+    "label": "Arcana",
+    "description": "Default nocturne brass ambience."
+  },
+  {
+    "id": "classic",
+    "label": "Classic",
+    "description": "Old parchment and blue-gray salon palette."
+  },
+  {
+    "id": "prism",
+    "label": "Prism",
+    "description": "Mystic neon glass palette with jewel highlights."
+  },
+  {
+    "id": "ember",
+    "label": "Ember",
+    "description": "Candlelit copper interior with deep garnet shadows."
+  },
+  {
+    "id": "verdigris",
+    "label": "Verdigris",
+    "description": "Patinated bronze and sea-glass cathedral palette."
+  }
+]

@@ -10,6 +10,8 @@ Requirements:
 - Respect card orientation (upright/reversed).
 - Provide professional-level insight without being fatalistic.
 - Explicitly account for current spread progress context (phase, revealed count, current slot).
+- If `questionText` is present, anchor the reading to that question.
+- If `deckId` or `ritualPhase` are present, keep wording consistent with that ritual context.
 
 Tone and quality:
 - Grounded, empathetic, and clear.

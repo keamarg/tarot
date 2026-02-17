@@ -1,0 +1,15 @@
+{
+  "id": "original-rws",
+  "label": "Rider-Waite Original",
+  "description": "Classic Rider-Waite-Smith imagery with warm neutral treatment.",
+  "sourceName": "steve-p Rider-Waite scan set",
+  "sourceUrl": "https://steve-p.org/cards/RWSa.html",
+  "cardsBasePath": "cards",
+  "cardBackPath": "backs/original.webp",
+  "enabled": true,
+  "ambienceProfile": {
+    "musicMode": "neutral",
+    "shuffleSfxSeed": 120,
+    "revealSfxSeed": 210
+  }
+}

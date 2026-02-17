@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const commands = [
   "fetch-rider-waite-assets.mjs",
   "fetch-card-backs.mjs",
+  "fetch-deck-assets.mjs",
   "validate-assets.mjs"
 ];
 

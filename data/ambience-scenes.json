@@ -1,0 +1,26 @@
+[
+  {
+    "id": "fortune-house",
+    "label": "Fortune Teller's House",
+    "description": "Wood, brass, wax, and cloth textures around a ritual altar.",
+    "candleCount": 3,
+    "smokeDensity": 0.32,
+    "crystalPrompt": false
+  },
+  {
+    "id": "crystal-chamber",
+    "label": "Crystal Chamber",
+    "description": "A moonlit crystal-ball chamber where prompts bloom in mist.",
+    "candleCount": 2,
+    "smokeDensity": 0.48,
+    "crystalPrompt": true
+  },
+  {
+    "id": "velvet-attic",
+    "label": "Velvet Attic",
+    "description": "Heavy drapery and subtle red glow for intimate night readings.",
+    "candleCount": 4,
+    "smokeDensity": 0.36,
+    "crystalPrompt": true
+  }
+]
