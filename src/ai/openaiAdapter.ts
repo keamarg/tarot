@@ -105,7 +105,7 @@ export class OpenAIAdapter implements LLMAdapter {
 
     const payload = {
       instruction:
-        "Return ONLY valid JSON with shape { assistantMessage: string, hints?: string[] }. Include hint-first coaching.",
+        "Return ONLY valid JSON with shape { assistantMessage: string, hints?: string[], autoAdvanceStep?: boolean, effortScore?: number }. Include hint-first coaching. Set autoAdvanceStep=true only when user effort is clearly sufficient for the current step.",
       roleMode: input.role,
       drawMode: input.drawMode,
       exercise: {

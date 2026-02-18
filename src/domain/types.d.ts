@@ -3,7 +3,7 @@ export type QualityPreset = "low" | "standard" | "high";
 export type ReversalMode = "none" | "balanced";
 export type TrainingRole = "coach" | "client" | "co_learner";
 export type DrawMode = "app" | "physical";
-export type UISkin = "arcana" | "classic" | "prism" | "ember" | "verdigris";
+export type UISkin = "arcana" | "prism" | "ember" | "verdigris";
 export type ExerciseStepAction = "draw" | "manual";
 export type ReadingLifecyclePhase = "setup" | "question" | "shuffle" | "pick" | "reveal" | "followup" | "full";
 export type AnimationIntensity = "low" | "standard" | "high";
@@ -182,6 +182,8 @@ export interface TrainingTurnInput {
 export interface TrainingTurnOutput {
     assistantMessage: string;
     hints?: string[];
+    autoAdvanceStep?: boolean;
+    effortScore?: number;
 }
 export interface ReadingInput {
     spread: SpreadDefinition;

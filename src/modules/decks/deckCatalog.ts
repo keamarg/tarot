@@ -1,12 +1,12 @@
 import rawOriginalDeck from "@data/decks/original-rws.json";
 import rawRadiantDeck from "@data/decks/radiant-rws.json";
-import rawErosDeck from "@data/decks/eros-velvet.json";
+import rawMarseilleDeck from "@data/decks/marseille-heritage.json";
 import rawPalettes from "@data/palettes.json";
 import rawScenes from "@data/ambience-scenes.json";
 import { ambientScenesSchema, decksSchema, palettesSchema } from "@/domain/schemas";
 import type { AmbientScene, DeckDefinition, PaletteDefinition } from "@/domain/types";
 
-const parsedDecks = decksSchema.parse([rawOriginalDeck, rawRadiantDeck, rawErosDeck]);
+const parsedDecks = decksSchema.parse([rawOriginalDeck, rawRadiantDeck, rawMarseilleDeck]);
 const parsedPalettes = palettesSchema.parse(rawPalettes);
 const parsedScenes = ambientScenesSchema.parse(rawScenes);
 

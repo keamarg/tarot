@@ -5,15 +5,6 @@
     :style="sceneStyle"
     aria-hidden="true"
   >
-    <div class="altar-hud">
-      <span>{{ spreadName || "Tarot Session" }}</span>
-      <span>{{ progressText }}</span>
-    </div>
-
-    <div class="candles" :style="{ '--candle-count': String(scene.candleCount) }">
-      <span v-for="index in scene.candleCount" :key="`candle-${index}`" class="candle"></span>
-    </div>
-
     <div v-if="scene.crystalPrompt && showCrystalPrompt" class="crystal-ball">
       <span>{{ crystalText }}</span>
     </div>
@@ -51,21 +42,9 @@ const { ensureStarted, applySettings, setDeckMusicMode, triggerCue } = useAudioE
 const scene = computed(() => getAmbientSceneById(settingsStore.settings.sceneId));
 const selectedDeck = computed(() => getDeckById(settingsStore.settings.deckId));
 
-const progressText = computed(() => {
-  if (!props.totalSlots) {
-    return "Awaiting draw";
-  }
-  return `${props.revealedCount}/${props.totalSlots} revealed`;
-});
-
 const sceneStyle = computed(() => ({
   "--smoke-opacity": String(Math.max(0.08, scene.value.smokeDensity)),
-  "--deck-shadow-tint": selectedDeck.value.shadowTint ?? "rgba(0, 0, 0, 0.24)",
-  "--animation-scale": settingsStore.settings.animationIntensity === "high"
-    ? "1"
-    : settingsStore.settings.animationIntensity === "low"
-      ? "0.55"
-      : "0.8"
+  "--deck-shadow-tint": selectedDeck.value.shadowTint ?? "rgba(0, 0, 0, 0.24)"
 }));
 
 let unsubscribeCue: (() => void) | undefined;
@@ -77,8 +56,7 @@ watch(
     settingsStore.settings.sfxEnabled,
     settingsStore.settings.masterVolume,
     settingsStore.settings.musicVolume,
-    settingsStore.settings.sfxVolume,
-    settingsStore.settings.ritualSilenceMode
+    settingsStore.settings.sfxVolume
   ],
   () => {
     if (!featureFlags.generatedAudio) {
@@ -91,8 +69,7 @@ watch(
         masterVolume: settingsStore.settings.masterVolume,
         musicVolume: settingsStore.settings.musicVolume,
         sfxVolume: settingsStore.settings.sfxVolume
-      },
-      { ritualSilence: settingsStore.settings.ritualSilenceMode && props.showCrystalPrompt }
+      }
     );
   },
   { immediate: true }
@@ -160,45 +137,6 @@ onUnmounted(() => {
   filter: blur(14px);
 }
 
-.altar-hud {
-  position: absolute;
-  top: 0.62rem;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  border-radius: 999px;
-  padding: 0.22rem 0.58rem;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  display: inline-flex;
-  gap: 0.5rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.candles {
-  position: absolute;
-  right: 1rem;
-  bottom: 0.9rem;
-  display: flex;
-  gap: 0.38rem;
-}
-
-.candle {
-  width: 0.52rem;
-  height: 1.7rem;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 234, 188, 0.92), rgba(188, 142, 84, 0.78));
-  box-shadow:
-    0 0 calc(14px * var(--animation-scale)) rgba(255, 193, 126, 0.65),
-    0 0 calc(32px * var(--animation-scale)) rgba(255, 157, 103, 0.3);
-  animation: candle-flicker calc(2.8s / var(--animation-scale)) ease-in-out infinite;
-}
-
-.candle:nth-child(2n) {
-  animation-delay: 0.4s;
-}
-
 .crystal-ball {
   position: absolute;
   left: 1rem;
@@ -223,24 +161,4 @@ onUnmounted(() => {
   text-shadow: 0 0 14px rgba(167, 214, 255, 0.35);
 }
 
-@keyframes candle-flicker {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: translateY(-1px) scale(1.03);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.88;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .candle {
-    animation: none;
-  }
-}
 </style>

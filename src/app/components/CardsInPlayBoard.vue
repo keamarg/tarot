@@ -107,10 +107,19 @@ const layoutColumns = computed(() => {
   if (count <= 0) {
     return 1;
   }
+  if (count <= 3) {
+    return count;
+  }
+  if (count <= 4) {
+    return 2;
+  }
   if (count <= 6) {
     return 3;
   }
-  return Math.ceil(count / 2);
+  if (count <= 8) {
+    return 4;
+  }
+  return 5;
 });
 
 const layoutRows = computed<number[][]>(() => {
@@ -118,44 +127,66 @@ const layoutRows = computed<number[][]>(() => {
   if (count <= 0) {
     return [];
   }
-
-  const firstRowCount = Math.min(layoutColumns.value, count);
-  const secondRowCount = count - firstRowCount;
-  const firstRow = Array.from({ length: firstRowCount }, (_, index) => index);
-  if (secondRowCount <= 0) {
-    return [firstRow];
+  const columns = Math.max(1, layoutColumns.value);
+  const rowCount = Math.max(1, Math.ceil(count / columns));
+  const baseCountPerRow = Math.floor(count / rowCount);
+  const remainder = count % rowCount;
+  const rows: number[][] = [];
+  let cursor = 0;
+  for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+    const rowSize = baseCountPerRow + (rowIndex < remainder ? 1 : 0);
+    rows.push(Array.from({ length: rowSize }, (_, offset) => cursor + offset));
+    cursor += rowSize;
   }
-  const secondRow = Array.from({ length: secondRowCount }, (_, index) => index + firstRowCount);
-  return [firstRow, secondRow];
+  return rows;
 });
 const boardStyle = computed<Record<string, string>>(() => {
   const width = gridSize.value.width || 940;
   const height = gridSize.value.height || 560;
   const rowCount = Math.max(1, layoutRows.value.length);
-  const columns = Math.max(1, layoutColumns.value);
-  const horizontalGap = 18;
-  const verticalGap = rowCount > 1 ? 16 : 0;
+  const columns = Math.max(1, ...layoutRows.value.map((row) => row.length));
+  const horizontalGap = columns <= 3 ? 30 : 20;
+  const verticalGap = rowCount > 1 ? 12 : 0;
   const paddingX = 18;
-  const paddingTop = 12;
-  const paddingBottom = 30;
-  const twoRowHeightCap = 640;
+  const paddingTop = rowCount > 1 ? 6 : 12;
+  const paddingBottom = rowCount > 1 ? 24 : 30;
 
   const availableWidth = Math.max(width - paddingX * 2, 120);
+  const availableHeight = Math.max(height - paddingTop - paddingBottom, 220);
   const widthBound = (availableWidth - horizontalGap * (columns - 1)) / columns;
-  const availableHeight = Math.max(height - paddingTop - paddingBottom, 140);
-  const layoutHeightBudget = rowCount > 1 ? Math.min(availableHeight, twoRowHeightCap) : availableHeight;
-  const rowHeight = (layoutHeightBudget - verticalGap * (rowCount - 1)) / rowCount;
-  // Card visual height ~= image((5/3)w) + compact metadata.
-  const metadataHeight = 60;
-  const heightBound = (rowHeight - metadataHeight) / (5 / 3);
-  const nextWidth = Math.floor(Math.max(84, Math.min(widthBound, heightBound, 236)));
+  const rowHeight = Math.max(110, (availableHeight - verticalGap * (rowCount - 1)) / rowCount);
+  const metadataHeight = props.editable ? 72 : 58;
+  const heightBoundWidth = rowCount > 1 ? (rowHeight - metadataHeight) / (5 / 3) : Number.POSITIVE_INFINITY;
+  const multiRowMaxWidth = props.editable
+    ? columns <= 2
+      ? 204
+      : columns === 3
+        ? 170
+        : columns === 4
+          ? 150
+          : 136
+    : columns <= 2
+      ? 226
+      : columns === 3
+        ? 188
+        : columns === 4
+          ? 164
+          : 146;
+  const multiRowMinWidth = columns >= 5 ? 92 : columns === 4 ? 106 : columns === 3 ? 118 : 132;
+  const nextWidth = Math.floor(
+    Math.max(
+      rowCount > 1 ? multiRowMinWidth : 84,
+      Math.min(widthBound, heightBoundWidth, rowCount > 1 ? multiRowMaxWidth : 236)
+    )
+  );
 
   return {
     "--card-width": `${nextWidth}px`,
     "--card-gap": `${horizontalGap}px`,
     "--row-gap": `${verticalGap}px`,
     "--layout-columns": `${columns}`,
-    "--rows-align": rowCount === 1 ? "end" : "center",
+    "--row-track-width": `calc(${columns} * ${nextWidth}px + ${Math.max(columns - 1, 0)} * ${horizontalGap}px)`,
+    "--rows-align": rowCount === 1 ? "end" : "start",
     "--grid-pad-x": `${paddingX}px`,
     "--grid-pad-top": `${paddingTop}px`,
     "--grid-pad-bottom": `${paddingBottom}px`
@@ -239,18 +270,21 @@ watch(
 }
 
 .cards-row {
-  display: grid;
-  grid-template-columns: repeat(var(--layout-columns), minmax(0, 1fr));
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
   align-items: flex-start;
   gap: var(--card-gap);
-  width: 100%;
+  width: min(100%, var(--row-track-width));
+  margin-inline: auto;
 }
 
 .card-cell {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  width: 100%;
+  width: min(var(--card-width), 100%);
+  flex: 0 1 var(--card-width);
   overflow: visible;
 }
 

@@ -5,11 +5,6 @@
     "description": "Default nocturne brass ambience."
   },
   {
-    "id": "classic",
-    "label": "Classic",
-    "description": "Old parchment and blue-gray salon palette."
-  },
-  {
     "id": "prism",
     "label": "Prism",
     "description": "Mystic neon glass palette with jewel highlights."

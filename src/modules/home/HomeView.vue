@@ -1,14 +1,17 @@
 <template>
   <section class="home-hero card">
-    <div class="hero-art" aria-hidden="true">
+    <div class="hero-art">
       <div class="floating-card-stack">
         <img
           v-for="(cardFile, index) in selectedFloatingSet"
           :key="`${cardFile}-${index}`"
           class="floating-card"
-          :class="`card-${index + 1}`"
+          :class="[{ 'lovers-card': cardFile === LOVERS_CARD_ID }, `card-${index + 1}`]"
           :src="cardImageUrl(cardFile)"
-          alt=""
+          :alt="cardFile === LOVERS_CARD_ID ? 'The Lovers card' : ''"
+          :aria-hidden="cardFile === LOVERS_CARD_ID ? 'false' : 'true'"
+          :title="cardFile === LOVERS_CARD_ID ? 'Double-click for a hidden scene' : undefined"
+          @dblclick="onFloatingCardDoubleClick(cardFile)"
         />
       </div>
     </div>
@@ -27,41 +30,84 @@
         <RouterLink class="button-link primary home-button" to="/reading">Reading</RouterLink>
       </div>
     </div>
+
+    <transition name="lovers-easter">
+      <div v-if="showLoversEasterEgg && easterEggImageReady" class="lovers-easter-overlay" aria-hidden="true">
+        <div class="lovers-easter-frame">
+          <img class="lovers-easter-image" :src="easterEggAssetUrl" alt="" @error="onEasterEggImageError" />
+        </div>
+      </div>
+    </transition>
   </section>
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, ref } from "vue";
 import { RouterLink } from "vue-router";
+import { publicAssetUrl } from "@/app/publicAsset";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { resolveDeckCardImage } from "@/modules/decks/deckResolver";
 
 const settingsStore = useSettingsStore();
+const LOVERS_CARD_ID = "major-06-the-lovers";
+const showLoversEasterEgg = ref(false);
+const easterEggImageReady = ref(true);
+let easterEggTimer: number | undefined;
 
 const floatingSets: string[][] = [
   [
     "major-00-the-fool",
-    "major-01-the-magician",
+    LOVERS_CARD_ID,
     "major-17-the-star"
   ],
   [
     "major-18-the-moon",
     "major-19-the-sun",
     "major-15-the-devil"
+  ],
+  [
+    "major-01-the-magician",
+    LOVERS_CARD_ID,
+    "major-14-temperance"
   ]
 ];
 
-const selectedFloatingSet = floatingSets[Math.floor(Math.random() * floatingSets.length)];
+const selectedFloatingSet = floatingSets[0];
+const easterEggAssetUrl = publicAssetUrl("easter-egg/neurons.jpg");
 
 function cardImageUrl(cardId: string): string {
   return resolveDeckCardImage(settingsStore.settings.deckId, cardId);
 }
+
+function onFloatingCardDoubleClick(cardId: string) {
+  if (cardId !== LOVERS_CARD_ID) {
+    return;
+  }
+  if (!easterEggImageReady.value) {
+    return;
+  }
+  showLoversEasterEgg.value = true;
+  window.clearTimeout(easterEggTimer);
+  easterEggTimer = window.setTimeout(() => {
+    showLoversEasterEgg.value = false;
+  }, 2800);
+}
+
+function onEasterEggImageError() {
+  easterEggImageReady.value = false;
+  showLoversEasterEgg.value = false;
+}
+
+onBeforeUnmount(() => {
+  window.clearTimeout(easterEggTimer);
+});
 </script>
 
 <style scoped>
 .home-hero {
   width: min(980px, 100%);
   margin: 1.8rem auto;
-  min-height: 430px;
+  min-height: 500px;
   display: grid;
   grid-template-columns: minmax(210px, 300px) 1fr;
   gap: 1rem;
@@ -91,6 +137,25 @@ function cardImageUrl(cardId: string): string {
   z-index: 1;
 }
 
+.hero-art::before {
+  content: "";
+  position: absolute;
+  left: 4%;
+  top: 6%;
+  width: min(280px, 34vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.32), transparent 36%),
+    radial-gradient(circle at 52% 52%, color-mix(in srgb, var(--accent-2) 22%, transparent), color-mix(in srgb, var(--surface) 84%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent-2) 36%, transparent);
+  box-shadow:
+    0 0 34px color-mix(in srgb, var(--accent-2) 26%, transparent),
+    inset 0 0 28px color-mix(in srgb, var(--accent) 18%, transparent);
+  filter: saturate(1.1);
+  pointer-events: none;
+}
+
 .floating-card-stack {
   position: absolute;
   inset: 0;
@@ -105,6 +170,10 @@ function cardImageUrl(cardId: string): string {
   opacity: 1;
   mix-blend-mode: normal;
   transition: transform 180ms ease;
+}
+
+.lovers-card {
+  cursor: pointer;
 }
 
 .card-1 {
@@ -134,7 +203,8 @@ function cardImageUrl(cardId: string): string {
 .hero-content {
   z-index: 1;
   display: grid;
-  gap: 0.72rem;
+  gap: 0.8rem;
+  align-content: center;
 }
 
 .eyebrow {
@@ -150,8 +220,8 @@ function cardImageUrl(cardId: string): string {
   display: flex;
   flex-wrap: wrap;
   gap: 0.48rem;
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.02;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 0.98;
 }
 
 .title-text span {
@@ -176,7 +246,8 @@ function cardImageUrl(cardId: string): string {
 .tagline {
   margin: 0;
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 1.06rem;
+  max-width: 38ch;
 }
 
 .home-actions {
@@ -187,8 +258,55 @@ function cardImageUrl(cardId: string): string {
 }
 
 .home-button {
-  font-size: 1.05rem;
-  min-height: 3rem;
+  font-size: 1.1rem;
+  min-height: 3.2rem;
+  letter-spacing: 0.01em;
+}
+
+.lovers-easter-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.lovers-easter-frame {
+  max-width: min(640px, 74vw);
+  max-height: min(360px, 56vh);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  background: color-mix(in srgb, var(--surface) 48%, transparent);
+  box-shadow:
+    0 0 30px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 18px 34px rgba(12, 8, 18, 0.54);
+  overflow: hidden;
+}
+
+.lovers-easter-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(640px, 74vw);
+  max-height: min(360px, 56vh);
+  object-fit: contain;
+  animation: lovers-glow 2.6s ease-in-out both;
+}
+
+.lovers-easter-enter-active,
+.lovers-easter-leave-active {
+  transition: opacity 700ms ease;
+}
+
+.lovers-easter-enter-from,
+.lovers-easter-leave-to {
+  opacity: 0;
+}
+
+.lovers-easter-enter-to,
+.lovers-easter-leave-from {
+  opacity: 1;
 }
 
 @keyframes reveal-word {
@@ -213,6 +331,21 @@ function cardImageUrl(cardId: string): string {
   }
   100% {
     transform: translateY(0) rotate(var(--start-rot, 0deg));
+  }
+}
+
+@keyframes lovers-glow {
+  0% {
+    transform: scale(0.96);
+    filter: saturate(0.9) brightness(0.92);
+  }
+  45% {
+    transform: scale(1);
+    filter: saturate(1.02) brightness(1.04);
+  }
+  100% {
+    transform: scale(1.02);
+    filter: saturate(1.05) brightness(1.08);
   }
 }
 

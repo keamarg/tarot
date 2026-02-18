@@ -14,7 +14,33 @@
         </header>
 
         <div class="board-shell">
-          <template v-if="showShuffleStage">
+          <template v-if="showQuestionStage">
+            <section class="question-stage">
+              <div class="question-stage-glow"></div>
+              <div class="question-stage-content">
+                <h4>{{ activeSpread.name }}</h4>
+                <p class="question-stage-copy">
+                  Take a breath and set one clear question before you begin.
+                </p>
+                <label class="question-stage-label" :class="{ empty: !ritualQuestion.trim() }">
+                  <span class="visually-hidden">Question</span>
+                  <textarea
+                    ref="questionInputRef"
+                    v-model="ritualQuestion"
+                    rows="1"
+                    aria-label="Question"
+                    @keydown="onQuestionKeydown"
+                  />
+                </label>
+                <div class="question-stage-actions">
+                  <button type="button" @click="submitRitualQuestion({ skipped: false })">Continue</button>
+                  <button type="button" @click="submitRitualQuestion({ skipped: true })">Skip question</button>
+                </div>
+              </div>
+            </section>
+          </template>
+
+          <template v-else-if="showShuffleStage">
             <RitualShuffleDeck
               :deck-back-url="selectedDeckBackUrl"
               :reduced-motion="settingsStore.settings.reducedEffects"
@@ -88,20 +114,9 @@
       </article>
 
       <article class="card dialogue-card">
-        <h3>Reading Dialogue</h3>
+        <h3>{{ mode === "upload" ? "Upload Reading" : "How This Reading Works" }}</h3>
 
-        <template v-if="showQuestionPrompt">
-          <RitualQuestionPrompt
-            v-model:question="ritualQuestion"
-            :crystal-mode="selectedScene?.crystalPrompt"
-            :voice-enabled="settingsStore.settings.voiceEnabled"
-            :voice-volume="settingsStore.settings.voiceVolume"
-            @submit="submitRitualQuestion"
-          />
-          <p class="small">You can continue without a question, but your reading will be less focused.</p>
-        </template>
-
-        <template v-else-if="mode === 'upload'">
+        <template v-if="mode === 'upload'">
           <section class="reading-status">
             <p class="small">Mode: Upload image</p>
             <p class="small">Detected spread: {{ uploadSpread.name }}</p>
@@ -157,17 +172,16 @@
         </template>
 
         <template v-else>
-          <section class="reading-status compact">
-            <div class="deck-usage" :class="{ full: revealedCount === appSpread.slots.length }">
-              <div class="deck-usage-row">
-                <span class="deck-usage-label">Spread Progress</span>
-                <span class="deck-usage-count">{{ revealedCount }} / {{ appSpread.slots.length }}</span>
-              </div>
-              <div class="deck-usage-meter" role="presentation" aria-hidden="true">
-                <span :style="{ width: `${appRevealPercent}%` }"></span>
-              </div>
-            </div>
-            <p v-if="appDialogue.length === 0" class="small">{{ appSpreadGuidance }}</p>
+          <section class="reading-guide">
+            <p class="small">
+              This reading mirrors a traditional tarot session, where each card position frames one layer of the situation.
+            </p>
+            <p class="small">
+              Meanings unfold progressively: each position is read on its own, then blended into one coherent takeaway.
+            </p>
+            <p class="small">
+              {{ spreadHowToRead }}
+            </p>
           </section>
 
           <div ref="appMessagesRef" class="messages" aria-live="polite" @scroll="onAppMessagesScroll">
@@ -180,14 +194,16 @@
               <strong>{{ entry.speaker === "user" ? "You" : "AI" }}</strong>
               <p>{{ entry.text }}</p>
             </article>
+            <p v-if="appDialogue.length === 0" class="small">Reveal a card to begin the dialogue.</p>
           </div>
 
           <div class="dialogue-input-wrap">
             <textarea
               v-model="appQuestion"
               rows="3"
-              placeholder="Ask about revealed cards."
+              placeholder="Ask about the revealed cards."
               aria-label="Follow up prompt"
+              @keydown="onAppQuestionKeydown"
             />
           </div>
 
@@ -292,13 +308,12 @@
 
 <script setup lang="ts">
 import { RotateCcw } from "lucide-vue-next";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import SpreadBoard from "@/app/components/SpreadBoard.vue";
 import CardEditorDialog from "@/app/components/CardEditorDialog.vue";
 import RitualShuffleDeck from "@/modules/ritual/components/RitualShuffleDeck.vue";
 import RitualFanPicker from "@/modules/ritual/components/RitualFanPicker.vue";
-import RitualQuestionPrompt from "@/modules/ritual/components/RitualQuestionPrompt.vue";
 import { useAutoScroll } from "@/app/composables/useAutoScroll";
 import { appendAssistantMessageIncremental } from "@/app/composables/useIncrementalDialogue";
 import { createLLMAdapter } from "@/ai/factory";
@@ -311,27 +326,27 @@ import { getSpreadById, spreads } from "@/domain/spreads";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
 import { useSessionStore } from "@/app/sessionStore";
 import { exportReadingPdf } from "@/modules/export/readingPdf";
-import { getAmbientSceneById } from "@/modules/decks/deckCatalog";
 import { resolveDeckBackImage, resolveDeckCardImage } from "@/modules/decks/deckResolver";
 import {
   READING_LIFECYCLE_VERSION,
   createInitialRitualState,
   nextReadingPhase,
-  shouldShowQuestionPrompt,
   supportsFanPicking
 } from "@/modules/ritual/lifecycle";
 import { emitAmbienceCue } from "@/modules/ambience/audio/ambienceBus";
+import { speakWhisper, stopWhisper } from "@/modules/ambience/audio/useWhisperVoice";
 import type { DialogueEntry, DrawnCard, ReadingLifecyclePhase, ReadingOutput, SpreadDefinition } from "@/domain/types";
 
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
 const router = useRouter();
 const usesServerProxy = hasServerProxy();
+const defaultSpreadId = spreads[0]?.id ?? "three-card";
 
 const isStarted = ref(sessionStore.readingDraft?.started ?? false);
 const setupOpen = ref(!isStarted.value);
 const mode = ref<"upload" | "app_draw">(sessionStore.readingDraft?.source ?? "app_draw");
-const setupSpreadId = ref(sessionStore.readingDraft?.spreadId ?? "three-card");
+const setupSpreadId = ref(resolveSpreadId(sessionStore.readingDraft?.spreadId));
 const setupUploadInputRef = ref<HTMLInputElement | null>(null);
 const ritualState = ref(createInitialRitualState(sessionStore.readingDraft?.source ?? "app_draw"));
 const lifecyclePhase = ref<ReadingLifecyclePhase>(
@@ -346,6 +361,8 @@ const ritualQuestion = ref(sessionStore.readingDraft?.questionText ?? "");
 const ritualQuestionSkipped = ref(Boolean(sessionStore.readingDraft?.questionSkipped));
 const ritualPickOrder = ref<number[]>(sessionStore.readingDraft?.pickOrder ?? []);
 const ritualCandidateCards = ref<DrawnCard[]>([]);
+const questionInputRef = ref<HTMLTextAreaElement | null>(null);
+const questionWhispered = ref(false);
 
 const uploadImageDataUrl = ref(
   sessionStore.readingDraft?.source === "upload" ? sessionStore.readingDraft.uploadedImageDataUrl ?? "" : ""
@@ -354,7 +371,9 @@ const uploadFileName = ref(
   sessionStore.readingDraft?.source === "upload" ? sessionStore.readingDraft.uploadedFileName ?? "" : ""
 );
 const uploadMimeType = ref("image/png");
-const uploadSpreadId = ref(sessionStore.readingDraft?.source === "upload" ? sessionStore.readingDraft.spreadId : "three-card");
+const uploadSpreadId = ref(
+  sessionStore.readingDraft?.source === "upload" ? resolveSpreadId(sessionStore.readingDraft.spreadId) : defaultSpreadId
+);
 const uploadCards = ref<Array<DrawnCard | undefined>>(
   sessionStore.readingDraft?.source === "upload" ? sessionStore.readingDraft.cards : []
 );
@@ -367,8 +386,11 @@ const uploadDialogue = ref<DialogueEntry[]>(
 );
 const uploadQuestion = ref("");
 const spreadConfidence = ref<number | null>(null);
+const pendingUploadDetection = ref(false);
 
-const appSpreadId = ref(sessionStore.readingDraft?.source === "app_draw" ? sessionStore.readingDraft.spreadId : "three-card");
+const appSpreadId = ref(
+  sessionStore.readingDraft?.source === "app_draw" ? resolveSpreadId(sessionStore.readingDraft.spreadId) : defaultSpreadId
+);
 const appCards = ref<Array<DrawnCard | undefined>>(
   sessionStore.readingDraft?.source === "app_draw" ? sessionStore.readingDraft.cards : []
 );
@@ -421,31 +443,15 @@ const canRevealNext = computed(
     (lifecyclePhase.value === "reveal" || lifecyclePhase.value === "followup") &&
     revealedCount.value < appSpread.value.slots.length
 );
-const appRevealPercent = computed(() => {
-  const total = appSpread.value.slots.length;
-  if (!total) {
-    return 0;
-  }
-  return Math.min(100, Math.round((revealedCount.value / total) * 100));
-});
-const appSpreadGuidance = computed(() => {
-  if (lifecyclePhase.value === "shuffle") {
-    return "Shuffle sequence in progress. Activate the deck to continue.";
-  }
-  if (lifecyclePhase.value === "pick") {
-    return "Select cards in your preferred order from the fan.";
-  }
-  const baseBySpread: Record<string, string> = {
-    "one-card-daily": "Hold a single clear question in mind, reveal the card, then ask one follow-up for practical focus.",
-    "three-card": "Ask one focused question, reveal cards in order, then connect them as a short story.",
-    "past-present-future": "Frame one situation, reveal in sequence, and compare momentum from past to future.",
-    "horseshoe": "Use one concrete question and reveal left to right.",
-    "celtic-cross": "Set one deep question and reveal in order, treating each position as a distinct layer."
+const spreadHowToRead = computed(() => {
+  const bySpread: Record<string, string> = {
+    "one-card-daily": "One-card spreads focus the session on one clear theme and one practical direction.",
+    "three-card": "Three-card spreads map movement across Past, Present, and Future before synthesizing direction.",
+    "past-present-future": "Past-Present-Future readings track what shaped the moment, what is active now, and what is emerging.",
+    "horseshoe": "Horseshoe spreads describe influences, challenges, and likely outcomes across a broader arc.",
+    "celtic-cross": "Celtic Cross readings provide a layered portrait of situation, influences, tensions, and trajectory."
   };
-  if (revealedCount.value >= appSpread.value.slots.length) {
-    return "All cards are revealed. Generate or update the full reading, then ask follow-up questions if needed.";
-  }
-  return baseBySpread[appSpread.value.id] ?? "Ask a focused question, reveal cards in order, then synthesize.";
+  return bySpread[appSpread.value.id] ?? "Spread positions are interpreted individually, then combined into one cohesive reading.";
 });
 const canGenerateFullReading = computed(
   () => mode.value === "app_draw" && revealedCount.value === appSpread.value.slots.length && appCards.value.every(Boolean)
@@ -487,9 +493,8 @@ const loadingCardStyle = computed(() => ({
   transform: loadingCardPreview.value?.reversed ? "rotate(180deg)" : "none"
 }));
 const selectedDeckBackUrl = computed(() => resolveDeckBackImage(settingsStore.settings.deckId));
-const selectedScene = computed(() => getAmbientSceneById(settingsStore.settings.sceneId));
-const showQuestionPrompt = computed(() =>
-  shouldShowQuestionPrompt(lifecyclePhase.value, settingsStore.settings.ritualPromptsEnabled)
+const showQuestionStage = computed(
+  () => lifecyclePhase.value === "question"
 );
 const showShuffleStage = computed(
   () => mode.value === "app_draw" && lifecyclePhase.value === "shuffle"
@@ -513,13 +518,42 @@ const fanPickCount = computed(() => {
   }
   return 0;
 });
-const fanCandidateCount = computed(() => Math.max(10, fanPickCount.value * 4));
+const fanCandidateCount = computed(() => cards.length);
 
 const { containerRef: uploadMessagesRef, handleScroll: onUploadMessagesScroll, scrollToBottom: scrollUploadToBottom } = useAutoScroll(
   computed(() => uploadDialogue.value.length)
 );
 const { containerRef: appMessagesRef, handleScroll: onAppMessagesScroll, scrollToBottom: scrollAppToBottom } = useAutoScroll(
   computed(() => appDialogue.value.length)
+);
+
+watch(
+  showQuestionStage,
+  (visible) => {
+    if (!visible) {
+      return;
+    }
+    void nextTick(() => {
+      questionInputRef.value?.focus();
+    });
+  },
+  { immediate: true }
+);
+
+watch(
+  [showQuestionStage, mode, () => settingsStore.settings.voiceEnabled, () => settingsStore.settings.voiceVolume],
+  ([questionVisible, currentMode, voiceEnabled, voiceVolume]) => {
+    if (!questionVisible || currentMode !== "app_draw" || !voiceEnabled || questionWhispered.value) {
+      return;
+    }
+    questionWhispered.value = true;
+    speakWhisper({
+      text: "ask your question",
+      enabled: true,
+      volume: Math.max(0.14, Math.min(0.34, voiceVolume * 0.75))
+    });
+  },
+  { immediate: true }
 );
 
 watch(uploadSpreadId, () => {
@@ -533,6 +567,10 @@ watch(appSpreadId, () => {
 
 watch(readingPopupOpen, (open) => {
   emitAmbienceCue(open ? "modal-open" : "modal-close");
+});
+
+onBeforeUnmount(() => {
+  stopWhisper();
 });
 
 watch(
@@ -605,6 +643,13 @@ watch(
 
 function countRevealedCards(cardsInDraft: Array<DrawnCard | undefined> = []): number {
   return cardsInDraft.filter((card) => card?.faceUp).length;
+}
+
+function resolveSpreadId(spreadId?: string): string {
+  if (spreadId && spreads.some((spread) => spread.id === spreadId)) {
+    return spreadId;
+  }
+  return defaultSpreadId;
 }
 
 function normalizeCards(spread: SpreadDefinition, nextCards: Array<DrawnCard | undefined>): Array<DrawnCard | undefined> {
@@ -828,7 +873,8 @@ function submitRitualQuestion(payload: { skipped: boolean }) {
   lifecyclePhase.value = nextPhase;
 
   if (mode.value === "upload") {
-    void detectSpread();
+    pendingUploadDetection.value = true;
+    maybeRunPendingUploadDetection();
     return;
   }
 
@@ -837,13 +883,36 @@ function submitRitualQuestion(payload: { skipped: boolean }) {
   }
 }
 
+function onQuestionKeydown(event: KeyboardEvent) {
+  if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) {
+    return;
+  }
+  event.preventDefault();
+  if (!ritualQuestion.value.trim()) {
+    return;
+  }
+  submitRitualQuestion({ skipped: false });
+}
+
+function onAppQuestionKeydown(event: KeyboardEvent) {
+  if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) {
+    return;
+  }
+  event.preventDefault();
+  if (!appQuestion.value.trim() || revealedCount.value === 0 || isReading.value) {
+    return;
+  }
+  void askAppFollowUp();
+}
+
 function startReading() {
   mode.value = "app_draw";
   appSpreadId.value = setupSpreadId.value;
   ritualState.value = createInitialRitualState("app_draw");
-  lifecyclePhase.value = settingsStore.settings.ritualPromptsEnabled ? "question" : "shuffle";
+  lifecyclePhase.value = "question";
   ritualQuestion.value = "";
   ritualQuestionSkipped.value = false;
+  questionWhispered.value = false;
   ritualPickOrder.value = [];
   ritualCandidateCards.value = [];
   appCards.value = [];
@@ -854,10 +923,6 @@ function startReading() {
   appQuestion.value = "";
   error.value = "";
   readingPopupOpen.value = false;
-
-  if (lifecyclePhase.value === "shuffle") {
-    emitAmbienceCue("shuffle-start");
-  }
 
   isStarted.value = true;
   setupOpen.value = false;
@@ -883,13 +948,14 @@ function onSetupImageUpload(event: Event) {
     return;
   }
 
-  setupSpreadId.value = setupSpreadId.value || "three-card";
+  setupSpreadId.value = setupSpreadId.value || defaultSpreadId;
   uploadSpreadId.value = setupSpreadId.value;
   mode.value = "upload";
   ritualState.value = createInitialRitualState("upload");
-  lifecyclePhase.value = settingsStore.settings.ritualPromptsEnabled ? "question" : "followup";
+  lifecyclePhase.value = "question";
   ritualQuestion.value = "";
   ritualQuestionSkipped.value = false;
+  questionWhispered.value = false;
   ritualPickOrder.value = [];
   isStarted.value = true;
   setupOpen.value = false;
@@ -897,8 +963,9 @@ function onSetupImageUpload(event: Event) {
   uploadDialogue.value = [];
   uploadQuestion.value = "";
   readingPopupOpen.value = false;
+  pendingUploadDetection.value = true;
 
-  applyUploadFile(file, !settingsStore.settings.ritualPromptsEnabled);
+  applyUploadFile(file, false);
   target.value = "";
 }
 
@@ -907,20 +974,21 @@ function resetReadingModule() {
   isStarted.value = false;
   setupOpen.value = true;
   mode.value = activeMode;
-  setupSpreadId.value = "three-card";
+  setupSpreadId.value = defaultSpreadId;
 
   uploadImageDataUrl.value = "";
   uploadFileName.value = "";
   uploadMimeType.value = "image/png";
-  uploadSpreadId.value = "three-card";
+  uploadSpreadId.value = defaultSpreadId;
   uploadCards.value = [];
   uploadReading.value = undefined;
   uploadNeedsUpdate.value = false;
   uploadDialogue.value = [];
   uploadQuestion.value = "";
   spreadConfidence.value = null;
+  pendingUploadDetection.value = false;
 
-  appSpreadId.value = "three-card";
+  appSpreadId.value = defaultSpreadId;
   appCards.value = [];
   appReading.value = undefined;
   appNeedsUpdate.value = false;
@@ -931,6 +999,7 @@ function resetReadingModule() {
   lifecyclePhase.value = "setup";
   ritualQuestion.value = "";
   ritualQuestionSkipped.value = false;
+  questionWhispered.value = false;
   ritualPickOrder.value = [];
   ritualCandidateCards.value = [];
 
@@ -953,9 +1022,19 @@ function applyUploadFile(file: File, detectImmediately = true) {
     error.value = "";
     if (detectImmediately) {
       void detectSpread();
+      return;
     }
+    maybeRunPendingUploadDetection();
   };
   reader.readAsDataURL(file);
+}
+
+function maybeRunPendingUploadDetection() {
+  if (!pendingUploadDetection.value || !uploadImageDataUrl.value || isDetecting.value) {
+    return;
+  }
+  pendingUploadDetection.value = false;
+  void detectSpread();
 }
 
 async function detectSpread() {
@@ -1477,6 +1556,140 @@ async function downloadCurrentPdf() {
   padding-bottom: 0.25rem;
 }
 
+.question-stage {
+  position: relative;
+  min-height: min(52vh, 420px);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 26%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 42%),
+    radial-gradient(circle at 68% 62%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 45%),
+    color-mix(in srgb, var(--surface) 78%, transparent);
+  display: grid;
+  place-items: center;
+}
+
+.question-stage-glow {
+  position: absolute;
+  width: min(380px, 44vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 42%, transparent);
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.26), transparent 34%),
+    radial-gradient(circle at 52% 52%, color-mix(in srgb, var(--accent-2) 26%, transparent), color-mix(in srgb, var(--surface) 84%, transparent));
+  filter: blur(0.2px) saturate(1.08);
+  box-shadow:
+    0 0 38px color-mix(in srgb, var(--accent-2) 24%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--accent) 18%, transparent);
+  animation: question-halo 4.6s ease-in-out infinite;
+}
+
+.question-stage-content {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 88%);
+  text-align: center;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.question-stage-content h4 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+}
+
+.question-stage-copy {
+  margin: 0;
+  font-size: 1rem;
+  color: color-mix(in srgb, var(--text) 92%, white 8%);
+}
+
+.question-stage-label {
+  position: relative;
+  display: block;
+  min-height: 1.95rem;
+  margin: 0.1rem 0 0;
+}
+
+.question-stage-label.empty::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.24rem;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-2) 78%, var(--accent));
+  opacity: 0.95;
+  animation: question-cursor 1s steps(1, end) infinite;
+  pointer-events: none;
+}
+
+.question-stage-label textarea {
+  width: 100%;
+  min-height: 1.9rem;
+  max-height: 7rem;
+  resize: none;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0;
+  padding: 0;
+  background: transparent !important;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.35;
+  caret-color: color-mix(in srgb, var(--accent-2) 76%, white 24%);
+  box-shadow: none;
+}
+
+.question-stage-label.empty textarea {
+  caret-color: transparent;
+}
+
+.question-stage-label textarea:focus-visible {
+  outline: none;
+  border: 0;
+}
+
+.question-stage-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin-top: 0.02rem;
+}
+
+.question-stage-actions button {
+  min-height: 1.9rem;
+  padding: 0.28rem 0.74rem;
+  border: 0 !important;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--surface) 92%, transparent),
+      color-mix(in srgb, var(--surface) 38%, transparent) 50%,
+      color-mix(in srgb, var(--surface) 92%, transparent)
+    );
+  color: color-mix(in srgb, var(--text) 96%, white 4%);
+  box-shadow: none;
+}
+
+.question-stage-actions button:hover,
+.question-stage-actions button:focus-visible {
+  transform: none;
+  border: 0;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--surface) 90%, transparent),
+      color-mix(in srgb, var(--surface) 32%, transparent) 50%,
+      color-mix(in srgb, var(--surface) 90%, transparent)
+    );
+}
+
 .board-loading {
   position: absolute;
   inset: 0.3rem;
@@ -1528,9 +1741,23 @@ async function downloadCurrentPdf() {
   position: relative;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto auto;
+  grid-template-rows: auto 1fr auto;
   gap: 0.55rem;
   overflow: visible;
+}
+
+.reading-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.42rem;
+}
+
+.reading-guide p {
+  margin: 0;
+  line-height: 1.42;
+  max-width: 42ch;
 }
 
 label {
@@ -1731,6 +1958,32 @@ label {
   }
 }
 
+@keyframes question-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.84;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.84;
+  }
+}
+
+@keyframes question-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .inline-spinner {
   width: 0.88rem;
   height: 0.88rem;
@@ -1750,7 +2003,7 @@ label {
   }
 
   .dialogue-card {
-    grid-template-rows: auto auto auto minmax(230px, 1fr) auto auto;
+    grid-template-rows: auto minmax(230px, 1fr) auto;
   }
 }
 

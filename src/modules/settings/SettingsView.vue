@@ -2,7 +2,7 @@
   <section class="grid settings-grid">
     <article class="card">
       <h2>Settings</h2>
-      <p class="small">Session-scoped configuration for AI, ritual flow, decks, ambience, and performance.</p>
+      <p class="small">Session-scoped configuration for AI and deck presentation.</p>
 
       <div class="form-grid">
         <label>
@@ -63,26 +63,8 @@
           </select>
         </label>
 
-        <label>
-          Scene
-          <select :value="settings.sceneId" @change="updateScene">
-            <option v-for="scene in ambientScenes" :key="scene.id" :value="scene.id">
-              {{ scene.label }}
-            </option>
-          </select>
-        </label>
-
-        <label>
-          Animation intensity
-          <select :value="settings.animationIntensity" @change="updateAnimationIntensity">
-            <option value="low">Low</option>
-            <option value="standard">Standard</option>
-            <option value="high">High</option>
-          </select>
-        </label>
-
         <fieldset class="full-width">
-          <legend>Quality</legend>
+          <legend>AI Quality</legend>
           <label class="inline"><input :checked="settings.quality === 'low'" type="radio" name="quality" @change="setQuality('low')" /> Low</label>
           <label class="inline"><input :checked="settings.quality === 'standard'" type="radio" name="quality" @change="setQuality('standard')" /> Standard</label>
           <label class="inline"><input :checked="settings.quality === 'high'" type="radio" name="quality" @change="setQuality('high')" /> High</label>
@@ -95,44 +77,31 @@
           <label class="inline"><input :checked="settings.reversalMode === 'balanced'" type="radio" name="reversal" @change="setReversal('balanced')" /> Balanced 50/50</label>
         </fieldset>
 
-        <fieldset class="full-width">
+        <fieldset class="full-width toggle-field">
           <legend>Audio</legend>
-          <label class="inline checkbox-inline"><input :checked="settings.musicEnabled" type="checkbox" @change="toggleMusic" /> Music</label>
-          <label class="inline checkbox-inline"><input :checked="settings.sfxEnabled" type="checkbox" @change="toggleSfx" /> SFX</label>
-          <label class="inline checkbox-inline"><input :checked="settings.voiceEnabled" type="checkbox" @change="toggleVoice" /> Whisper voice</label>
-
-          <label class="slider-row">
-            Master
-            <input :value="settings.masterVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('masterVolume', $event)" />
-          </label>
-          <label class="slider-row">
-            Music
-            <input :value="settings.musicVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('musicVolume', $event)" />
-          </label>
-          <label class="slider-row">
-            SFX
-            <input :value="settings.sfxVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('sfxVolume', $event)" />
-          </label>
-          <label class="slider-row">
-            Voice
-            <input :value="settings.voiceVolume" type="range" min="0" max="1" step="0.01" @input="updateRange('voiceVolume', $event)" />
-          </label>
+          <div class="audio-toggles">
+            <label class="checkbox-inline">
+              <input :checked="settings.musicEnabled" type="checkbox" @change="toggleMusic" />
+              Ambient music
+            </label>
+            <label class="checkbox-inline">
+              <input :checked="settings.sfxEnabled" type="checkbox" @change="toggleSfx" />
+              Sound effects
+            </label>
+            <label class="checkbox-inline">
+              <input :checked="settings.voiceEnabled" type="checkbox" @change="toggleVoice" />
+              Whisper voice
+            </label>
+          </div>
         </fieldset>
 
-        <fieldset class="full-width">
-          <legend>Ritual</legend>
-          <label class="inline checkbox-inline"><input :checked="settings.ritualPromptsEnabled" type="checkbox" @change="toggleRitualPrompts" /> Show question ritual</label>
-          <label class="inline checkbox-inline"><input :checked="settings.ritualSilenceMode" type="checkbox" @change="toggleRitualSilence" /> Ritual silence during question</label>
-          <label class="inline checkbox-inline"><input :checked="settings.reducedEffects" type="checkbox" @change="toggleReducedEffects" /> Reduce visual effects</label>
-        </fieldset>
-
-        <label class="full-width qa-toggle">
-          <span>QA mode</span>
-          <span class="inline">
+        <fieldset class="full-width toggle-field qa-toggle">
+          <legend>QA Mode</legend>
+          <label class="checkbox-inline">
             <input :checked="settings.qaUseMock" type="checkbox" @change="updateQaToggle" />
             Use mock responses (no API calls)
-          </span>
-        </label>
+          </label>
+        </fieldset>
       </div>
     </article>
 
@@ -140,9 +109,7 @@
       <h3>Deck Preview</h3>
       <img v-if="backImageUrl" class="back-preview" :src="backImageUrl" alt="Selected tarot card back" />
       <p class="small">{{ selectedDeck?.description }}</p>
-
-      <h3>Scene Notes</h3>
-      <p class="small">{{ selectedScene?.description }}</p>
+      <p class="small source-note">Source: {{ selectedDeck?.sourceName }}</p>
 
       <h3>Palette Notes</h3>
       <p class="small">{{ selectedPalette?.description }}</p>
@@ -155,9 +122,9 @@ import { computed, ref, watch } from "vue";
 import { fallbackModelsFor, fetchModelsForProvider, type ModelCatalogItem } from "@/ai/modelCatalog";
 import { hasServerProxy } from "@/ai/apiBase";
 import { useSettingsStore } from "@/modules/settings/settingsStore";
-import { ambientScenes, availableDecks, getAmbientSceneById, getDeckById, getPaletteById, palettes } from "@/modules/decks/deckCatalog";
+import { availableDecks, getDeckById, getPaletteById, palettes } from "@/modules/decks/deckCatalog";
 import { resolveDeckBackImage } from "@/modules/decks/deckResolver";
-import type { AnimationIntensity, ProviderId, QualityPreset, ReversalMode, UISkin } from "@/domain/types";
+import type { ProviderId, QualityPreset, ReversalMode, UISkin } from "@/domain/types";
 
 const settingsStore = useSettingsStore();
 const settings = computed(() => settingsStore.settings);
@@ -168,7 +135,6 @@ const usesServerProxy = hasServerProxy();
 
 const selectedDeck = computed(() => getDeckById(settings.value.deckId));
 const selectedPalette = computed(() => getPaletteById(settings.value.paletteId));
-const selectedScene = computed(() => getAmbientSceneById(settings.value.sceneId));
 
 const apiKeyPlaceholder = computed(() => {
   if (usesServerProxy && !settings.value.apiKeySession.trim()) {
@@ -228,16 +194,6 @@ function updatePalette(event: Event) {
   settingsStore.updateSettings({ paletteId: target.value, uiSkin: target.value as UISkin });
 }
 
-function updateScene(event: Event) {
-  const target = event.target as HTMLSelectElement;
-  settingsStore.updateSettings({ sceneId: target.value });
-}
-
-function updateAnimationIntensity(event: Event) {
-  const target = event.target as HTMLSelectElement;
-  settingsStore.updateSettings({ animationIntensity: target.value as AnimationIntensity });
-}
-
 function setQuality(quality: QualityPreset) {
   settingsStore.updateSettings({ quality });
 }
@@ -248,38 +204,23 @@ function setReversal(reversalMode: ReversalMode) {
 
 function toggleMusic(event: Event) {
   const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ musicEnabled: target.checked });
+  settingsStore.updateSettings({
+    musicEnabled: target.checked
+  });
 }
 
 function toggleSfx(event: Event) {
   const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ sfxEnabled: target.checked });
+  settingsStore.updateSettings({
+    sfxEnabled: target.checked
+  });
 }
 
 function toggleVoice(event: Event) {
   const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ voiceEnabled: target.checked });
-}
-
-function toggleRitualPrompts(event: Event) {
-  const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ ritualPromptsEnabled: target.checked });
-}
-
-function toggleRitualSilence(event: Event) {
-  const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ ritualSilenceMode: target.checked });
-}
-
-function toggleReducedEffects(event: Event) {
-  const target = event.target as HTMLInputElement;
-  settingsStore.updateSettings({ reducedEffects: target.checked });
-}
-
-function updateRange(key: "masterVolume" | "musicVolume" | "sfxVolume" | "voiceVolume", event: Event) {
-  const target = event.target as HTMLInputElement;
-  const parsed = Number(target.value);
-  settingsStore.updateSettings({ [key]: Number.isFinite(parsed) ? parsed : 0 } as Partial<typeof settings.value>);
+  settingsStore.updateSettings({
+    voiceEnabled: target.checked
+  });
 }
 
 function updateQaToggle(event: Event) {
@@ -346,7 +287,7 @@ label {
   gap: 0.35rem;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   width: min(420px, 100%);
 }
@@ -372,12 +313,17 @@ legend {
 }
 
 .checkbox-inline {
-  min-width: 180px;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.42rem;
 }
 
-.slider-row {
+.audio-toggles {
   width: 100%;
-  align-items: center;
+  display: grid;
+  gap: 0.22rem;
 }
 
 .quality-note {
@@ -400,6 +346,21 @@ legend {
   grid-column: 1 / -1;
 }
 
+.toggle-field {
+  margin: 0;
+  padding: 0.55rem 0.62rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: grid;
+  justify-items: start;
+  gap: 0.32rem;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.qa-toggle {
+  align-content: start;
+}
+
 .settings-side {
   display: grid;
   gap: 0.65rem;
@@ -418,10 +379,8 @@ legend {
   background: color-mix(in srgb, var(--surface) 75%, transparent);
 }
 
-.qa-toggle {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.48rem 0.55rem;
+.source-note {
+  color: var(--muted);
 }
 
 @media (max-width: 980px) {

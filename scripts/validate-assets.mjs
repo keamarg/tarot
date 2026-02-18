@@ -10,6 +10,8 @@ const repoRoot = path.resolve(__dirname, "..");
 const cardsPath = path.join(repoRoot, "data", "cards.json");
 const decksDir = path.join(repoRoot, "data", "decks");
 const publicDir = path.join(repoRoot, "public");
+const MIN_CARD_RATIO = 0.52;
+const MAX_CARD_RATIO = 0.64;
 
 function isObject(value) {
   return Boolean(value) && typeof value === "object";
@@ -93,13 +95,13 @@ async function validateDeck(deck, cards) {
 
       if (relativeCardPath.endsWith(".png")) {
         const buffer = await fs.readFile(fullPath);
-        const dimensions = parsePngDimensions(buffer);
-        if (dimensions) {
-          const ratio = dimensions.width / dimensions.height;
-          if (ratio < 0.54 || ratio > 0.64) {
-            ratioWarnings.push(`${relativeCardPath} (${dimensions.width}x${dimensions.height})`);
+          const dimensions = parsePngDimensions(buffer);
+          if (dimensions) {
+            const ratio = dimensions.width / dimensions.height;
+            if (ratio < MIN_CARD_RATIO || ratio > MAX_CARD_RATIO) {
+              ratioWarnings.push(`${relativeCardPath} (${dimensions.width}x${dimensions.height})`);
+            }
           }
-        }
       }
     } catch {
       missing.push(relativeCardPath);

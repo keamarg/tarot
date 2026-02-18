@@ -34,28 +34,6 @@
   --panel-gradient: linear-gradient(125deg, rgba(23, 17, 41, 0.95), rgba(24, 40, 58, 0.88));
 }
 
-body[data-skin="classic"] {
-  --bg-0: #202735;
-  --bg-1: #2e3a4f;
-  --bg-2: #43556f;
-  --surface: rgba(242, 238, 229, 0.8);
-  --surface-soft: rgba(51, 63, 85, 0.16);
-  --border: rgba(86, 99, 124, 0.44);
-  --text: #243146;
-  --muted: #4f6481;
-  --accent: #b58a4b;
-  --accent-2: #4f7f96;
-  --danger: #985168;
-  --ok: #46705f;
-  --shadow: 0 20px 40px rgba(13, 18, 28, 0.31);
-  --background:
-    radial-gradient(circle at 18% 12%, rgba(185, 138, 71, 0.22), transparent 39%),
-    radial-gradient(circle at 80% 10%, rgba(76, 125, 149, 0.22), transparent 33%),
-    linear-gradient(160deg, var(--bg-0), var(--bg-1) 50%, var(--bg-2));
-  --panel-gradient: linear-gradient(126deg, rgba(238, 232, 220, 0.82), rgba(227, 220, 206, 0.82));
-  --site-pattern: url("/symbols/tree-of-life-proper.svg");
-}
-
 body[data-skin="prism"] {
   --bg-0: #160e2a;
   --bg-1: #1e1745;
@@ -184,11 +162,9 @@ body::after {
   pointer-events: none;
   opacity: 0.2;
   background:
-    var(--route-symbol-a) right clamp(-300px, -18vw, -170px) bottom clamp(-220px, -14vh, -120px) / min(78vw, 980px) auto no-repeat,
-    var(--route-symbol-b) right clamp(-130px, -8vw, -56px) top clamp(-120px, -7vh, -64px) / min(46vw, 640px) auto no-repeat,
     radial-gradient(circle at 11% 14%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 18%),
     radial-gradient(circle at 86% 23%, color-mix(in srgb, var(--accent-2) 28%, transparent), transparent 18%);
-  background-blend-mode: screen, screen, normal, normal;
+  background-blend-mode: normal, normal;
   z-index: 0;
 }
 
@@ -258,31 +234,24 @@ body::after {
 }
 
 .brand-symbol {
-  width: 1.9rem;
-  height: 1.9rem;
-  padding: 0.12rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 46%, var(--border));
-  filter: saturate(1.5) brightness(1.22) contrast(1.08);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent-2) 38%, transparent),
-    0 7px 15px rgba(0, 0, 0, 0.38);
+  width: 2.32rem;
+  height: 2.32rem;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border: 0;
+  filter: none;
+  box-shadow: none;
   flex: 0 0 auto;
-  margin-right: 0.08rem;
+  margin-right: 0.1rem;
   object-fit: contain;
+  display: block;
 }
 
 .brand-link:hover,
 .brand-link:focus-visible {
   color: var(--accent);
   outline: none;
-}
-
-.brand-link:hover .brand-symbol,
-.brand-link:focus-visible .brand-symbol {
-  border-color: color-mix(in srgb, var(--accent) 68%, var(--border));
-  filter: saturate(1.7) brightness(1.3) contrast(1.12);
 }
 
 .main-nav {
@@ -343,9 +312,22 @@ body::after {
   background:
     var(--panel-symbol-a),
     var(--panel-symbol-b);
-  opacity: 0;
+  opacity: 0.12;
   mix-blend-mode: normal;
   z-index: -1;
+}
+
+.app-main::after {
+  content: "";
+  position: absolute;
+  inset: 0.26rem;
+  border-radius: calc(var(--radius) - 6px);
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  background:
+    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 36%),
+    radial-gradient(circle at 86% 84%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 32%);
+  opacity: 0.55;
 }
 
 h1,
@@ -373,7 +355,7 @@ textarea {
   color: inherit;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   border: 1px solid var(--border);
@@ -382,9 +364,26 @@ textarea {
   padding: 0.42rem 0.58rem;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   min-height: var(--control-height);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  accent-color: color-mix(in srgb, var(--accent-2) 58%, var(--accent));
+  vertical-align: middle;
+}
+
+input[type="radio"] {
+  border-radius: 999px;
 }
 
 textarea {

@@ -7,7 +7,7 @@ describe("deck resolver", () => {
     const ids = new Set(availableDecks.map((deck) => deck.id));
     expect(ids.has("original-rws")).toBe(true);
     expect(ids.has("radiant-rws")).toBe(true);
-    expect(ids.has("eros-velvet")).toBe(true);
+    expect(ids.has("marseille-heritage")).toBe(true);
   });
 
   it("resolves card path and back path for each enabled deck", () => {

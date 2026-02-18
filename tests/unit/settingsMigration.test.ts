@@ -10,14 +10,16 @@ describe("settings migration", () => {
       quality: "standard",
       cardBackId: "original",
       reversalMode: "balanced",
-      uiSkin: "classic",
+      uiSkin: "prism",
       qaUseMock: false
     });
 
     expect(normalized.deckId.length).toBeGreaterThan(0);
-    expect(normalized.paletteId).toBe("classic");
+    expect(normalized.paletteId).toBe("prism");
     expect(normalized.ritualPromptsEnabled).toBe(true);
-    expect(normalized.musicEnabled).toBe(true);
+    expect(normalized.musicEnabled).toBe(false);
+    expect(normalized.sfxEnabled).toBe(true);
+    expect(normalized.voiceEnabled).toBe(false);
     expect(normalized.masterVolume).toBeGreaterThan(0);
   });
 });

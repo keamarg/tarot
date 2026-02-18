@@ -12,9 +12,9 @@
       "url": "https://steve-p.org/cards/RWSa.html"
     },
     {
-      "id": "eros-velvet",
-      "name": "Derived velvet grading from steve-p Rider Waite scan set + symbolic local back",
-      "url": "https://steve-p.org/cards/RWSa.html"
+      "id": "marseille-heritage",
+      "name": "TarotCaster Wikimedia Commons bundle (Tarot de Marseille)",
+      "url": "https://github.com/alamahant/TarotCaster/tree/master/decks/TarotdeMarseille"
     }
   ],
   "backs": [
@@ -27,9 +27,51 @@
       "url": "https://www.usgamesinc.com/images/product/smith-waite-deck-back_2013.webp"
     },
     {
-      "id": "eros-velvet",
-      "url": "local:/public/backs/eros.svg"
+      "id": "marseille-heritage",
+      "url": "https://github.com/alamahant/TarotCaster/tree/master/decks/TarotdeMarseille/back.png"
     }
   ],
+  "audio_sources": {
+    "music": [
+      {
+        "id": "ambient-main",
+        "name": "Mixkit horror sci-fi wind tunnel",
+        "url": "https://assets.mixkit.co/active_storage/sfx/894/894-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      },
+      {
+        "id": "ambient-alt",
+        "name": "Mixkit horror sci-fi wind tunnel",
+        "url": "https://assets.mixkit.co/active_storage/sfx/894/894-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      }
+    ],
+    "sfx": [
+      {
+        "id": "wind-ambience",
+        "name": "Mixkit horror sci-fi wind tunnel",
+        "url": "https://assets.mixkit.co/active_storage/sfx/894/894-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      },
+      {
+        "id": "air-whoosh",
+        "name": "Mixkit quick air woosh",
+        "url": "https://assets.mixkit.co/active_storage/sfx/2605/2605-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      },
+      {
+        "id": "harp-sweep",
+        "name": "Mixkit fast sword whoosh (card cue)",
+        "url": "https://assets.mixkit.co/active_storage/sfx/2792/2792-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      },
+      {
+        "id": "soft-bell",
+        "name": "Mixkit fast sword whoosh (card cue)",
+        "url": "https://assets.mixkit.co/active_storage/sfx/2792/2792-preview.mp3",
+        "license": "https://mixkit.co/license/#sfxFree"
+      }
+    ]
+  },
   "note": "Deck manifests in data/decks govern runtime deck resolution and asset validation."
 }

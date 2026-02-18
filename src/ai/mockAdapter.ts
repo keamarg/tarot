@@ -1,5 +1,29 @@
-import { getCardName } from "@/domain/cards";
+import { cards, getCardName } from "@/domain/cards";
+import { getSpreadById, spreads } from "@/domain/spreads";
+import type { QualityPreset } from "@/domain/types";
 import type { LLMAdapter, ReadingInput, TrainingTurnInput } from "@/domain/types";
+
+function stableHash(input: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) || 1;
+}
+
+function inferSpreadId(payloadLength: number, hash: number): string {
+  if (payloadLength < 135_000) {
+    return "one-card-daily";
+  }
+  if (payloadLength < 450_000) {
+    return hash % 4 === 0 ? "past-present-future" : "three-card";
+  }
+  if (payloadLength < 750_000) {
+    return hash % 5 === 0 ? "horseshoe" : "three-card";
+  }
+  return "three-card";
+}
 
 export class MockAdapter implements LLMAdapter {
   async runTrainingTurn(input: TrainingTurnInput) {
@@ -7,21 +31,53 @@ export class MockAdapter implements LLMAdapter {
     const progress =
       `Step ${input.progress.stepIndex + 1} (${input.progress.stepType}): ${input.progress.stepText}. ` +
       `Next action key: ${input.progress.requiredAction}.`;
+    const userWordCount = input.userMessage.trim().split(/\s+/).filter(Boolean).length;
+    const autoAdvanceStep = input.progress.stepType === "manual" && userWordCount >= 24;
+    const effortScore = Math.max(0, Math.min(1, userWordCount / 40));
     return {
       assistantMessage:
         `Practice mode mock response for ${input.exercise.title}. ` +
         `${progress}. Limit: ${input.exercise.rules.maxCardsInPlay} cards. ` +
         `Role: ${input.role}. Cards in play: ${cardNames.join(", ") || "none"}. ` +
         "Add your API key in Settings to enable live AI coaching.",
-      hints: ["Start by naming one dominant symbol.", "Connect that symbol to the slot meaning."]
+      hints: ["Start by naming one dominant symbol.", "Connect that symbol to the slot meaning."],
+      autoAdvanceStep,
+      effortScore
     };
   }
 
-  async detectSpreadFromImage() {
+  async detectSpreadFromImage(input: {
+    imageBase64: string;
+    mimeType: string;
+    quality: QualityPreset;
+  }) {
+    const payload = input.imageBase64 ?? "";
+    const seed = stableHash(`${payload.slice(0, 4096)}|${payload.length}|${input.mimeType}|${input.quality}`);
+    const guessedSpreadId = inferSpreadId(payload.length, seed);
+    const fallbackSpreadId = spreads[0]?.id ?? "one-card-daily";
+    const spread = getSpreadById(spreads.some((entry) => entry.id === guessedSpreadId) ? guessedSpreadId : fallbackSpreadId);
+    const usedCardIndices = new Set<number>();
+
+    const detectedCards = spread.slots.map((slot, index) => {
+      let candidateCardIndex = (seed + index * 37) % cards.length;
+      while (usedCardIndices.has(candidateCardIndex)) {
+        candidateCardIndex = (candidateCardIndex + 1) % cards.length;
+      }
+      usedCardIndices.add(candidateCardIndex);
+      const card = cards[candidateCardIndex];
+      return {
+        slotId: slot.id,
+        cardId: card.id,
+        cardName: card.name,
+        reversed: ((seed >> (index % 24)) & 1) === 1,
+        confidence: Math.min(0.96, 0.56 + ((seed + index * 29) % 36) / 100)
+      };
+    });
+
     return {
-      guessedSpreadId: "three-card",
-      spreadConfidence: 0.42,
-      cards: []
+      guessedSpreadId: spread.id,
+      spreadConfidence: Math.min(0.93, 0.62 + (seed % 24) / 100),
+      cards: detectedCards
     };
   }
 

@@ -29,6 +29,7 @@
                 :key="`${primaryActionMode}-${primaryActionFlipToken}`"
                 class="primary action-toggle"
                 type="button"
+                :disabled="isLoading"
                 @click="handlePrimaryAction"
               >
                 {{ primaryActionLabel }}
@@ -208,6 +209,7 @@ import { useSessionStore } from "@/app/sessionStore";
 import { createLLMAdapter } from "@/ai/factory";
 import { MockAdapter } from "@/ai/mockAdapter";
 import { hasServerProxy } from "@/ai/apiBase";
+import { emitAmbienceCue } from "@/modules/ambience/audio/ambienceBus";
 import type { DrawMode, DrawnCard, TrainingRole } from "@/domain/types";
 
 type StepType = "draw" | "manual";
@@ -317,19 +319,36 @@ const canAdvanceStep = computed(
     hasRequiredCardsForStep.value &&
     activeStepIndex.value < totalSteps.value - 1
 );
+const canStartNewRound = computed(
+  () => activeStepIndex.value === totalSteps.value - 1 && hasRequiredCardsForStep.value && cardsInPlay.value.length > 0
+);
 const needsCatchUpDraw = computed(
   () => activeStepType.value === "manual" && !hasRequiredCardsForStep.value && canDrawOverall.value
 );
-const primaryActionMode = computed<"draw" | "next" | null>(() => {
+const primaryActionMode = computed<"draw" | "next" | "new-round" | null>(() => {
   if (canDrawForStep.value || needsCatchUpDraw.value) {
     return "draw";
   }
   if (canAdvanceStep.value) {
     return "next";
   }
+  if (canStartNewRound.value) {
+    return "new-round";
+  }
   return null;
 });
-const primaryActionLabel = computed(() => (primaryActionMode.value === "draw" ? "Draw Card" : "Next Step"));
+const primaryActionLabel = computed(() => {
+  if (primaryActionMode.value === "draw") {
+    return "Draw Card";
+  }
+  if (primaryActionMode.value === "next") {
+    return "Next Step";
+  }
+  if (primaryActionMode.value === "new-round") {
+    return "New Round";
+  }
+  return "";
+});
 const showAddNamedCardButton = computed(() => primaryActionMode.value === "draw" && canAddNamedCard.value);
 const showBoardActions = computed(
   () => Boolean(primaryActionMode.value) || showAddNamedCardButton.value
@@ -405,12 +424,35 @@ function advanceStep() {
 }
 
 function handlePrimaryAction() {
+  if (isLoading.value) {
+    return;
+  }
   if (primaryActionMode.value === "draw") {
     drawCard();
     return;
   }
   if (primaryActionMode.value === "next") {
     advanceStep();
+    return;
+  }
+  if (primaryActionMode.value === "new-round") {
+    startNewRound();
+  }
+}
+
+function startNewRound() {
+  if (isLoading.value) {
+    return;
+  }
+  cardsInPlay.value = [];
+  transcript.value = [];
+  userMessage.value = "";
+  error.value = "";
+  stepIndex.value = 0;
+  drawMode.value = "app";
+  const firstStep = normalizedSteps.value[0];
+  if (firstStep?.type === "draw" || firstStep?.drawCount > 0) {
+    drawCard();
   }
 }
 
@@ -444,6 +486,7 @@ function drawCard() {
       iteration: cardsInPlay.value.length
     });
     cardsInPlay.value = [...cardsInPlay.value, drawn];
+    emitAmbienceCue("card-pick");
     advanceAfterDraw();
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Unable to draw card.";
@@ -522,6 +565,7 @@ function applyCardEditFromDialog(cardId: string, reversed: boolean) {
 
   if (isNewCard) {
     cardsInPlay.value = [...cardsInPlay.value, { cardId, reversed, faceUp: true }];
+    emitAmbienceCue("card-pick");
     advanceAfterDraw();
   } else {
     cardsInPlay.value = cardsInPlay.value.map((card, index) =>
@@ -580,6 +624,16 @@ async function sendMessage() {
     await appendAssistantMessageIncremental(transcript, `${response.assistantMessage}${hintText}`, {
       onChunk: () => scrollToBottom(true)
     });
+
+    const shouldAutoAdvance =
+      Boolean(response.autoAdvanceStep) &&
+      activeStepType.value === "manual" &&
+      hasRequiredCardsForStep.value &&
+      activeStepIndex.value < totalSteps.value - 1;
+    if (shouldAutoAdvance) {
+      advanceStep();
+      emitAmbienceCue("step-advance");
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Failed to get response.";
   } finally {

@@ -4,6 +4,7 @@ export type AmbienceCue =
   | "deck-activate"
   | "card-pick"
   | "card-reveal"
+  | "step-advance"
   | "modal-open"
   | "modal-close";
 

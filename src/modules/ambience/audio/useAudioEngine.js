@@ -1,5 +1,7 @@
 import { onBeforeUnmount, ref } from "vue";
+import { publicAssetUrl } from "@/app/publicAsset";
 const state = {
+    activeSfx: new Set(),
     started: false
 };
 const defaultAudioSettings = {
@@ -9,15 +11,38 @@ const defaultAudioSettings = {
     musicVolume: 0.4,
     sfxVolume: 0.45
 };
+const AUDIO_REV = "20260218c";
+const ambienceTrackUrl = publicAssetUrl(`audio/ambience-894.mp3?v=${AUDIO_REV}`);
+const cardCueUrl = publicAssetUrl(`audio/card-cue-2792.mp3?v=${AUDIO_REV}`);
+const airCueUrl = publicAssetUrl(`audio/air-cue-2605.mp3?v=${AUDIO_REV}`);
+const musicTrackByMode = {
+    warm: ambienceTrackUrl,
+    cool: ambienceTrackUrl,
+    neutral: ambienceTrackUrl
+};
+const cueLayers = {
+    "shuffle-start": [
+        { url: ambienceTrackUrl, volume: 0.05, playbackRate: 0.84 },
+        { url: airCueUrl, volume: 0.045, playbackRate: 0.78, delayMs: 110 }
+    ],
+    "shuffle-end": [{ url: airCueUrl, volume: 0.038, playbackRate: 0.76 }],
+    "deck-activate": [{ url: cardCueUrl, volume: 0.028, playbackRate: 0.7 }],
+    "card-pick": [{ url: cardCueUrl, volume: 0.032, playbackRate: 0.74 }],
+    "card-reveal": [{ url: cardCueUrl, volume: 0.036, playbackRate: 0.72 }],
+    "step-advance": [{ url: cardCueUrl, volume: 0.03, playbackRate: 0.76 }],
+    "modal-open": [{ url: airCueUrl, volume: 0.03, playbackRate: 0.74 }],
+    "modal-close": [{ url: airCueUrl, volume: 0.028, playbackRate: 0.72 }]
+};
 let currentSettings = { ...defaultAudioSettings };
+let currentMusicMode = "neutral";
 function clampVolume(value) {
     return Math.max(0, Math.min(1, value));
 }
-function getTargetMusicGain() {
+function getTargetMusicVolume() {
     if (!currentSettings.musicEnabled) {
         return 0;
     }
-    return clampVolume(currentSettings.masterVolume) * clampVolume(currentSettings.musicVolume) * 0.14;
+    return clampVolume(currentSettings.masterVolume) * clampVolume(currentSettings.musicVolume) * 0.16;
 }
 function getSfxGainScale() {
     if (!currentSettings.sfxEnabled) {
@@ -25,154 +50,142 @@ function getSfxGainScale() {
     }
     return clampVolume(currentSettings.masterVolume) * clampVolume(currentSettings.sfxVolume);
 }
-function ensureContext() {
+function getMusicPlaybackRate() {
+    if (currentMusicMode === "warm") {
+        return 0.96;
+    }
+    if (currentMusicMode === "cool") {
+        return 1.02;
+    }
+    return 1;
+}
+function createLoopTrack(url) {
     if (typeof window === "undefined") {
         return undefined;
     }
-    if (!state.context) {
-        const AudioCtor = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtor) {
-            return undefined;
-        }
-        state.context = new AudioCtor();
-    }
-    return state.context;
+    const audio = new Audio(url);
+    audio.loop = true;
+    audio.preload = "auto";
+    audio.volume = getTargetMusicVolume();
+    audio.playbackRate = getMusicPlaybackRate();
+    return audio;
 }
-function setupAmbienceNodes(context) {
-    if (state.ambienceGain && state.ambienceOscillatorA && state.ambienceOscillatorB) {
-        return;
+function ensureAmbienceTrack() {
+    if (typeof window === "undefined") {
+        return undefined;
     }
-    const gain = context.createGain();
-    gain.gain.value = 0;
-    gain.connect(context.destination);
-    const oscillatorA = context.createOscillator();
-    oscillatorA.type = "sine";
-    oscillatorA.frequency.value = 146.83;
-    const oscillatorB = context.createOscillator();
-    oscillatorB.type = "triangle";
-    oscillatorB.frequency.value = 220;
-    oscillatorA.connect(gain);
-    oscillatorB.connect(gain);
-    oscillatorA.start();
-    oscillatorB.start();
-    state.ambienceGain = gain;
-    state.ambienceOscillatorA = oscillatorA;
-    state.ambienceOscillatorB = oscillatorB;
+    const targetUrl = musicTrackByMode[currentMusicMode];
+    if (!state.ambienceTrack) {
+        state.ambienceTrack = createLoopTrack(targetUrl);
+        return state.ambienceTrack;
+    }
+    if (state.ambienceTrack.src.endsWith(targetUrl)) {
+        return state.ambienceTrack;
+    }
+    const previous = state.ambienceTrack;
+    const previousProgress = previous.duration > 0 ? previous.currentTime / previous.duration : 0;
+    previous.pause();
+    state.ambienceTrack = createLoopTrack(targetUrl);
+    if (state.ambienceTrack?.duration && previousProgress > 0) {
+        state.ambienceTrack.currentTime = state.ambienceTrack.duration * previousProgress;
+    }
+    return state.ambienceTrack;
 }
-function setMusicMode(mode) {
-    if (!state.ambienceOscillatorA || !state.ambienceOscillatorB) {
+async function syncAmbiencePlayback() {
+    const track = ensureAmbienceTrack();
+    if (!track) {
         return;
     }
-    if (mode === "warm") {
-        state.ambienceOscillatorA.frequency.value = 130.81;
-        state.ambienceOscillatorB.frequency.value = 196;
+    track.volume = getTargetMusicVolume();
+    track.playbackRate = getMusicPlaybackRate();
+    if (!state.started || !currentSettings.musicEnabled) {
+        track.pause();
         return;
     }
-    if (mode === "cool") {
-        state.ambienceOscillatorA.frequency.value = 174.61;
-        state.ambienceOscillatorB.frequency.value = 261.63;
-        return;
+    try {
+        await track.play();
     }
-    state.ambienceOscillatorA.frequency.value = 146.83;
-    state.ambienceOscillatorB.frequency.value = 220;
+    catch {
+        // Browser gesture restrictions are expected before the first click/tap.
+    }
 }
-function rampAmbienceGain(duration = 0.6) {
-    const context = state.context;
-    const gain = state.ambienceGain;
-    if (!context || !gain) {
+function playOneShot(layer) {
+    if (typeof window === "undefined") {
         return;
     }
-    const now = context.currentTime;
-    gain.gain.cancelScheduledValues(now);
-    gain.gain.setValueAtTime(gain.gain.value, now);
-    gain.gain.linearRampToValueAtTime(getTargetMusicGain(), now + duration);
-}
-function playClickSfx(frequency, durationSec, gainScale) {
-    const context = ensureContext();
-    if (!context || gainScale <= 0) {
+    const scaledVolume = clampVolume(layer.volume * getSfxGainScale());
+    if (scaledVolume <= 0) {
         return;
     }
-    const osc = context.createOscillator();
-    const gain = context.createGain();
-    osc.type = "triangle";
-    osc.frequency.value = frequency;
-    gain.gain.value = gainScale * 0.12;
-    osc.connect(gain);
-    gain.connect(context.destination);
-    const now = context.currentTime;
-    gain.gain.setValueAtTime(gain.gain.value, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
-    osc.start(now);
-    osc.stop(now + durationSec);
+    const source = new Audio(layer.url);
+    source.preload = "auto";
+    source.volume = scaledVolume;
+    source.playbackRate = layer.playbackRate ?? 1;
+    const cleanup = () => {
+        source.pause();
+        source.src = "";
+        state.activeSfx.delete(source);
+    };
+    source.addEventListener("ended", cleanup, { once: true });
+    source.addEventListener("error", cleanup, { once: true });
+    state.activeSfx.add(source);
+    void source.play().catch(() => {
+        cleanup();
+    });
 }
 function playCue(cue) {
-    const sfxScale = getSfxGainScale();
-    if (cue === "shuffle-start") {
-        playClickSfx(160, 0.25, sfxScale);
+    if (!state.started || !currentSettings.sfxEnabled) {
         return;
     }
-    if (cue === "shuffle-end") {
-        playClickSfx(240, 0.2, sfxScale);
+    const layers = cueLayers[cue];
+    if (!layers?.length) {
         return;
     }
-    if (cue === "deck-activate") {
-        playClickSfx(320, 0.16, sfxScale);
-        return;
+    for (const layer of layers) {
+        const delayMs = Math.max(0, layer.delayMs ?? 0);
+        if (delayMs > 0 && typeof window !== "undefined") {
+            window.setTimeout(() => playOneShot(layer), delayMs);
+        }
+        else {
+            playOneShot(layer);
+        }
     }
-    if (cue === "card-pick") {
-        playClickSfx(360, 0.14, sfxScale);
-        return;
+}
+function stopAllSfx() {
+    for (const player of state.activeSfx) {
+        player.pause();
+        player.src = "";
     }
-    if (cue === "card-reveal") {
-        playClickSfx(430, 0.18, sfxScale);
-        return;
-    }
-    if (cue === "modal-open") {
-        playClickSfx(280, 0.16, sfxScale);
-        return;
-    }
-    if (cue === "modal-close") {
-        playClickSfx(220, 0.16, sfxScale);
-    }
+    state.activeSfx.clear();
 }
 export function useAudioEngine() {
     const isReady = ref(false);
     async function ensureStarted() {
-        const context = ensureContext();
-        if (!context) {
-            return;
-        }
-        if (context.state === "suspended") {
-            await context.resume();
-        }
-        setupAmbienceNodes(context);
-        rampAmbienceGain(0.8);
         state.started = true;
+        await syncAmbiencePlayback();
         isReady.value = true;
     }
-    function applySettings(settings, options) {
+    function applySettings(settings) {
         currentSettings = {
             ...currentSettings,
             ...settings
         };
-        if (options?.ritualSilence) {
-            if (state.ambienceGain && state.context) {
-                const now = state.context.currentTime;
-                state.ambienceGain.gain.cancelScheduledValues(now);
-                state.ambienceGain.gain.setValueAtTime(state.ambienceGain.gain.value, now);
-                state.ambienceGain.gain.linearRampToValueAtTime(0.001, now + 0.35);
-            }
-            return;
+        void syncAmbiencePlayback();
+        if (!currentSettings.sfxEnabled) {
+            stopAllSfx();
         }
-        rampAmbienceGain(0.35);
     }
     function setDeckMusicMode(mode) {
-        setMusicMode(mode);
+        currentMusicMode = mode;
+        void syncAmbiencePlayback();
     }
     function triggerCue(cue) {
         playCue(cue);
     }
     onBeforeUnmount(() => {
+        state.started = false;
+        state.ambienceTrack?.pause();
+        stopAllSfx();
         isReady.value = false;
     });
     return {

@@ -22,4 +22,6 @@ export declare function parseReadingResponse(rawText: string): {
 export declare function parseTrainingResponse(rawText: string): {
     assistantMessage: string;
     hints?: string[] | undefined;
+    autoAdvanceStep?: boolean | undefined;
+    effortScore?: number | undefined;
 };

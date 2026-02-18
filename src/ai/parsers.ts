@@ -31,7 +31,9 @@ const readingSchema = z.object({
 
 const trainingSchema = z.object({
   assistantMessage: z.string(),
-  hints: z.array(z.string()).optional()
+  hints: z.array(z.string()).optional(),
+  autoAdvanceStep: z.boolean().optional(),
+  effortScore: z.number().min(0).max(1).optional()
 });
 
 function extractFirstJsonBlock(text: string): string {

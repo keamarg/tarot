@@ -515,6 +515,10 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 22px var(--deck-shadow-tint, rgba(4, 7, 16, 0.45));
 }
 
+.card-visual.is-face-down .image-shell {
+  animation: card-breath 5.8s ease-in-out infinite;
+}
+
 .image-shell.quarter {
   aspect-ratio: 5 / 3;
 }
@@ -650,9 +654,14 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  min-height: 2.2em;
   text-align: center;
   font-weight: 600;
 }
@@ -677,7 +686,7 @@ onBeforeUnmount(() => {
 }
 
 .card-visual.compact-meta .meta-chip {
-  min-height: 3.65rem;
+  min-height: 4.1rem;
   padding: 0.24rem 0.34rem;
 }
 
@@ -687,7 +696,7 @@ onBeforeUnmount(() => {
 
 .card-visual.compact-meta .meta-card-name {
   font-size: 0.74rem;
-  line-height: 1.12;
+  line-height: 1.1;
 }
 
 .chip-icon.danger:hover,
@@ -879,7 +888,23 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes card-breath {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .card-visual.is-face-down .image-shell {
+    animation: none;
+  }
+
   .next-hint {
     animation: none;
   }

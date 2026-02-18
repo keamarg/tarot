@@ -8,7 +8,6 @@
       <textarea
         :value="question"
         rows="3"
-        placeholder="What should I understand most clearly right now?"
         @input="onInput"
       />
     </label>
@@ -72,7 +71,9 @@ onMounted(() => {
   border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   border-radius: 12px;
   padding: 0.7rem;
-  background: color-mix(in srgb, var(--surface) 76%, transparent);
+  background:
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 38%),
+    color-mix(in srgb, var(--surface) 76%, transparent);
 }
 
 .question-prompt h4,
@@ -88,6 +89,9 @@ onMounted(() => {
 }
 
 .question-prompt.crystal {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-2) 25%, transparent), 0 12px 26px rgba(11, 22, 39, 0.35);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent-2) 25%, transparent),
+    0 12px 26px rgba(11, 22, 39, 0.35),
+    inset 0 0 34px color-mix(in srgb, var(--accent-2) 16%, transparent);
 }
 </style>

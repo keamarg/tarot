@@ -76,6 +76,23 @@ onBeforeUnmount(() => {
   place-items: center;
   gap: 0.6rem;
   min-height: min(40vh, 300px);
+  position: relative;
+}
+
+.shuffle-stage::before {
+  content: "";
+  position: absolute;
+  width: min(420px, 54vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 40% 32%, rgba(255, 255, 255, 0.26), transparent 36%),
+    radial-gradient(circle at 52% 52%, color-mix(in srgb, var(--accent-2) 22%, transparent), color-mix(in srgb, var(--surface) 84%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent-2) 32%, transparent);
+  box-shadow:
+    0 0 36px color-mix(in srgb, var(--accent-2) 26%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--accent) 16%, transparent);
+  pointer-events: none;
 }
 
 .instruction {
