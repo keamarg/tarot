@@ -18,7 +18,7 @@ function clamp01(value: number, fallback: number): number {
 
 export const defaultSettings: AppSettings = {
   provider: "anthropic",
-  model: "claude-3-7-sonnet-latest",
+  model: "claude-haiku-4-5-20251001",
   apiKeySession: "",
   quality: "standard",
   cardBackId: "original",
@@ -92,7 +92,7 @@ export function normalizeSettings(next: Partial<AppSettings>): AppSettings {
   const availableModels = fallbackModelsFor(baseWithSanitizedFields.provider);
   return {
     ...baseWithSanitizedFields,
-    model: availableModels[0]?.id ?? "claude-3-7-sonnet-latest"
+    model: availableModels[0]?.id ?? "claude-haiku-4-5-20251001"
   };
 }
 

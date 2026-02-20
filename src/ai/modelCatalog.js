@@ -26,7 +26,8 @@ function isLowCostModel(provider, id) {
         if (modelId.includes("opus")) {
             return false;
         }
-        if (modelId.includes("3-5-sonnet") || modelId.includes("3.5-sonnet")) {
+        // Exclude deprecated 3.x models
+        if (modelId.includes("3-5-sonnet") || modelId.includes("3.5-sonnet") || modelId.includes("3-7-sonnet")) {
             return false;
         }
         return modelId.includes("haiku") || modelId.includes("sonnet");

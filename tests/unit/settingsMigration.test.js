@@ -4,7 +4,7 @@ describe("settings migration", () => {
     it("hydrates missing ritual and ambience fields from defaults", () => {
         const normalized = normalizeSettings({
             provider: "anthropic",
-            model: "claude-3-7-sonnet-latest",
+            model: "claude-haiku-4-5-20251001",
             apiKeySession: "",
             quality: "standard",
             cardBackId: "original",

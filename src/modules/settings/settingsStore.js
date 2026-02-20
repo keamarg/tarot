@@ -14,7 +14,7 @@ function clamp01(value, fallback) {
 }
 export const defaultSettings = {
     provider: "anthropic",
-    model: "claude-3-7-sonnet-latest",
+    model: "claude-haiku-4-5-20251001",
     apiKeySession: "",
     quality: "standard",
     cardBackId: "original",
@@ -82,7 +82,7 @@ export function normalizeSettings(next) {
     const availableModels = fallbackModelsFor(baseWithSanitizedFields.provider);
     return {
         ...baseWithSanitizedFields,
-        model: availableModels[0]?.id ?? "claude-3-7-sonnet-latest"
+        model: availableModels[0]?.id ?? "claude-haiku-4-5-20251001"
     };
 }
 export const useSettingsStore = defineStore("settings", {
